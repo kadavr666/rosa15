@@ -1,10 +1,31 @@
 import {defineType, defineField, defineArrayMember} from 'sanity'
 
-export const homepage = defineType({
-  name: 'homepage',
-  title: 'Homepage',
+export const project = defineType({
+  name: 'project',
+  title: 'Project',
   type: 'document',
   fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: {source: 'title'},
+    }),
+    defineField({
+      name: 'heroImage',
+      title: 'Hero Image',
+      type: 'image',
+    }),
+    defineField({
+      name: 'heroImageHover',
+      title: 'Hero Image (Hover)',
+      type: 'image',
+    }),
     defineField({
       name: 'sections',
       title: 'Sections',
@@ -55,6 +76,14 @@ export const homepage = defineType({
         }),
       ],
     }),
+  ],
+})
+
+export const siteSettings = defineType({
+  name: 'siteSettings',
+  title: 'Site Settings',
+  type: 'document',
+  fields: [
     defineField({
       name: 'footerText',
       title: 'Footer Text',

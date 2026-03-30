@@ -1,3 +1,3 @@
-import {homepage} from './homepage'
+import {project, siteSettings} from './homepage'
 
-export const schemaTypes = [homepage]
+export const schemaTypes = [project, siteSettings]

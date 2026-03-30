@@ -8,91 +8,95 @@
 </head>
 <body>
     <main>
-        <div class="hero-container">
-            <img src="hero.jpg" alt="Antuni" class="hero-image hero-default">
-            <img src="hero2.jpg" alt="Antuni" class="hero-image hero-hover">
-        </div>
-        <div id="about"></div>
+        <div class="hero-container" id="hero"></div>
+        <div id="sections"></div>
         <footer id="footer">
             <div class="footer-content">
-                <div class="footer-links">
-                    <a href="mailto:contact@rosa15.com">Contact</a>
-                    <a href="https://instagram.com" target="_blank">Instagram</a>
-                </div>
+                <div class="footer-links"></div>
                 <div class="footer-text"></div>
             </div>
         </footer>
-        <section class="crowdfunding" id="crowdfunding"></section>
-        <div id="custom-sections"></div>
         <div class="mobile-logo">
             <img src="logo_black.svg" alt="Rosa Logo">
         </div>
     </main>
 
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script>
-        fetch('content.json')
-            .then(r => r.json())
-            .then(data => {
-                // About section
-                document.getElementById('about').innerHTML =
-                    `<p class="center">${data.about.subtitle}<br>${data.about.title}</p>` +
-                    `<p>${data.about.description}</p>`;
+        const PROJECT_ID = 'hp2p0iij';
+        const DATASET = 'production';
+        const API = `https://${PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${DATASET}`;
 
-                // Footer text
-                document.querySelector('.footer-text').innerHTML =
-                    `<p>${data.footer.text}</p>`;
+        function sanityImageUrl(ref) {
+            if (!ref) return '';
+            const [, id, dims, ext] = ref.split('-');
+            return `https://cdn.sanity.io/images/${PROJECT_ID}/${DATASET}/${id}-${dims}.${ext}`;
+        }
 
-                // Footer links
-                document.querySelector('.footer-links').innerHTML =
-                    `<a href="mailto:${data.footer.contact_email}">Contact</a>` +
-                    `<a href="${data.footer.instagram_url}" target="_blank">Instagram</a>`;
+        function query(q) {
+            return fetch(`${API}?query=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(r => r.result);
+        }
 
-                // Crowdfunding section
-                let crowdHtml =
-                    `<p class="center">${data.crowdfunding.title}</p>` +
-                    `<p>${data.crowdfunding.description}</p>`;
-                data.crowdfunding.tiers.forEach(tier => {
-                    crowdHtml +=
-                        `<div class="list-item" data-price="${tier.price}">` +
-                        `<div class="item-title">${tier.title}</div>` +
-                        `<div class="item-desc">${tier.description}</div>` +
-                        `</div>`;
-                });
-                document.getElementById('crowdfunding').innerHTML = crowdHtml;
+        // Fetch first project and site settings
+        Promise.all([
+            query('*[_type == "project"][0]{ title, heroImage, heroImageHover, sections }'),
+            query('*[_type == "siteSettings"][0]{ footerText, contactEmail, instagramUrl }'),
+        ]).then(([project, settings]) => {
+            // Hero images
+            if (project && project.heroImage) {
+                document.getElementById('hero').innerHTML =
+                    `<img src="${sanityImageUrl(project.heroImage.asset._ref)}" alt="${project.title || ''}" class="hero-image hero-default">` +
+                    (project.heroImageHover
+                        ? `<img src="${sanityImageUrl(project.heroImageHover.asset._ref)}" alt="${project.title || ''}" class="hero-image hero-hover">`
+                        : '');
+            } else {
+                document.getElementById('hero').innerHTML =
+                    `<img src="hero.jpg" alt="Antuni" class="hero-image hero-default">` +
+                    `<img src="hero2.jpg" alt="Antuni" class="hero-image hero-hover">`;
+            }
 
-                // Custom sections
-                if (data.sections && data.sections.length) {
-                    let sectionsHtml = '';
-                    data.sections.forEach(section => {
-                        sectionsHtml += `<section class="custom-section">`;
-                        sectionsHtml += `<p class="center">${section.title}</p>`;
-                        sectionsHtml += `<p>${section.text}</p>`;
-                        if (section.items && section.items.length) {
+            // Sections
+            if (project && project.sections) {
+                let html = '';
+                project.sections.forEach(section => {
+                    if (section._type === 'textSection') {
+                        html += `<div class="text-section">`;
+                        if (section.title || section.subtitle) {
+                            html += `<div class="title">${section.subtitle ? section.subtitle + '<br>' : ''}${section.title || ''}</div>`;
+                        }
+                        if (section.body) html += `<p>${section.body}</p>`;
+                        html += `</div>`;
+                    } else if (section._type === 'listSection') {
+                        html += `<section class="crowdfunding">`;
+                        if (section.title) html += `<div class="title">${section.title}</div>`;
+                        if (section.description) html += `<p>${section.description}</p>`;
+                        if (section.items) {
                             section.items.forEach(item => {
-                                sectionsHtml +=
+                                html +=
                                     `<div class="list-item" data-price="${item.price || ''}">` +
-                                    `<div class="item-title">${item.title}</div>` +
-                                    `<div class="item-desc">${item.description}</div>` +
+                                    `<div class="item-title">${item.title || ''}</div>` +
+                                    `<div class="item-desc">${item.description || ''}</div>` +
                                     `</div>`;
                             });
                         }
-                        sectionsHtml += `</section>`;
-                    });
-                    document.getElementById('custom-sections').innerHTML = sectionsHtml;
-                }
-            });
+                        html += `</section>`;
+                    }
+                });
+                document.getElementById('sections').innerHTML = html;
+            }
 
-        // Netlify Identity redirect
-        if (window.netlifyIdentity) {
-            window.netlifyIdentity.on("init", user => {
-                if (!user) {
-                    window.netlifyIdentity.on("login", () => {
-                        document.location.href = "/admin/";
-                    });
+            // Footer
+            if (settings) {
+                if (settings.footerText) {
+                    document.querySelector('.footer-text').innerHTML = `<p>${settings.footerText}</p>`;
                 }
-            });
-        }
+                let linksHtml = '';
+                if (settings.contactEmail) linksHtml += `<a href="mailto:${settings.contactEmail}">Contact</a>`;
+                if (settings.instagramUrl) linksHtml += `<a href="${settings.instagramUrl}" target="_blank">Instagram</a>`;
+                document.querySelector('.footer-links').innerHTML = linksHtml;
+            }
+        });
     </script>
 
     <div class="fixed-logo">
