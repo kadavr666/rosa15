@@ -23,6 +23,7 @@
             </div>
         </footer>
         <section class="crowdfunding" id="crowdfunding"></section>
+        <div id="custom-sections"></div>
         <div class="mobile-logo">
             <img src="logo_black.svg" alt="Rosa Logo">
         </div>
@@ -59,6 +60,27 @@
                         `</div>`;
                 });
                 document.getElementById('crowdfunding').innerHTML = crowdHtml;
+
+                // Custom sections
+                if (data.sections && data.sections.length) {
+                    let sectionsHtml = '';
+                    data.sections.forEach(section => {
+                        sectionsHtml += `<section class="custom-section">`;
+                        sectionsHtml += `<p class="center">${section.title}</p>`;
+                        sectionsHtml += `<p>${section.text}</p>`;
+                        if (section.items && section.items.length) {
+                            section.items.forEach(item => {
+                                sectionsHtml +=
+                                    `<div class="list-item" data-price="${item.price || ''}">` +
+                                    `<div class="item-title">${item.title}</div>` +
+                                    `<div class="item-desc">${item.description}</div>` +
+                                    `</div>`;
+                            });
+                        }
+                        sectionsHtml += `</section>`;
+                    });
+                    document.getElementById('custom-sections').innerHTML = sectionsHtml;
+                }
             });
 
         // Netlify Identity redirect
