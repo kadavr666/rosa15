@@ -36,23 +36,23 @@
             .then(data => {
                 // About section
                 document.getElementById('about').innerHTML =
-                    `<p class="center">${data.about_subtitle}<br>${data.about_title}</p>` +
-                    `<p>${data.about_description}</p>`;
+                    `<p class="center">${data.about.subtitle}<br>${data.about.title}</p>` +
+                    `<p>${data.about.description}</p>`;
 
                 // Footer text
                 document.querySelector('.footer-text').innerHTML =
-                    `<p>${data.footer_text}</p>`;
+                    `<p>${data.footer.text}</p>`;
 
                 // Footer links
                 document.querySelector('.footer-links').innerHTML =
-                    `<a href="mailto:${data.contact_email}">Contact</a>` +
-                    `<a href="${data.instagram_url}" target="_blank">Instagram</a>`;
+                    `<a href="mailto:${data.footer.contact_email}">Contact</a>` +
+                    `<a href="${data.footer.instagram_url}" target="_blank">Instagram</a>`;
 
                 // Crowdfunding section
                 let crowdHtml =
-                    `<p class="center">${data.crowdfunding_title}</p>` +
-                    `<p>${data.crowdfunding_description}</p>`;
-                data.tiers.forEach(tier => {
+                    `<p class="center">${data.crowdfunding.title}</p>` +
+                    `<p>${data.crowdfunding.description}</p>`;
+                data.crowdfunding.tiers.forEach(tier => {
                     crowdHtml +=
                         `<div class="list-item" data-price="${tier.price}">` +
                         `<div class="item-title">${tier.title}</div>` +

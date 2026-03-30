@@ -13,24 +13,39 @@ collections:
         name: "homepage"
         file: "content.json"
         fields:
-          - { label: "About - Subtitle", name: "about_subtitle", widget: "string" }
-          - { label: "About - Title", name: "about_title", widget: "string" }
-          - { label: "About - Description", name: "about_description", widget: "text" }
-          - { label: "Footer Text", name: "footer_text", widget: "text" }
-          - { label: "Contact Email", name: "contact_email", widget: "string" }
-          - { label: "Instagram URL", name: "instagram_url", widget: "string" }
-          - { label: "Crowdfunding Title", name: "crowdfunding_title", widget: "string" }
-          - { label: "Crowdfunding Description", name: "crowdfunding_description", widget: "text" }
-          - label: "Tiers"
-            name: "tiers"
-            widget: "list"
+          - label: "About"
+            name: "about"
+            widget: "object"
             collapsed: true
-            minimize_collapsed: true
-            summary: "{{fields.title}} — {{fields.price}}"
+            fields:
+              - { label: "Subtitle", name: "subtitle", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "description", widget: "text" }
+          - label: "Footer"
+            name: "footer"
+            widget: "object"
+            collapsed: true
+            fields:
+              - { label: "Text", name: "text", widget: "text" }
+              - { label: "Contact Email", name: "contact_email", widget: "string" }
+              - { label: "Instagram URL", name: "instagram_url", widget: "string" }
+          - label: "Crowdfunding"
+            name: "crowdfunding"
+            widget: "object"
+            collapsed: true
             fields:
               - { label: "Title", name: "title", widget: "string" }
               - { label: "Description", name: "description", widget: "text" }
-              - { label: "Price", name: "price", widget: "string" }
+              - label: "Tiers"
+                name: "tiers"
+                widget: "list"
+                collapsed: true
+                minimize_collapsed: true
+                summary: "{{fields.title}} — {{fields.price}}"
+                fields:
+                  - { label: "Title", name: "title", widget: "string" }
+                  - { label: "Description", name: "description", widget: "text" }
+                  - { label: "Price", name: "price", widget: "string" }
           - label: "Custom Sections"
             name: "sections"
             widget: "list"
