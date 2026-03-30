@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antuni - Lusia Kazaryan (Margenrot)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main>
+        <div class="hero-container">
+            <img src="hero.jpg" alt="Antuni" class="hero-image hero-default">
+            <img src="hero2.jpg" alt="Antuni" class="hero-image hero-hover">
+        </div>
+        <div id="about"></div>
+        <footer id="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="mailto:contact@rosa15.com">Contact</a>
+                    <a href="https://instagram.com" target="_blank">Instagram</a>
+                </div>
+                <div class="footer-text"></div>
+            </div>
+        </footer>
+        <section class="crowdfunding" id="crowdfunding"></section>
+        <div class="mobile-logo">
+            <img src="logo_black.svg" alt="Rosa Logo">
+        </div>
+    </main>
+
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+        fetch('content.json')
+            .then(r => r.json())
+            .then(data => {
+                // About section
+                document.getElementById('about').innerHTML =
+                    `<p class="center">${data.about_subtitle}<br>${data.about_title}</p>` +
+                    `<p>${data.about_description}</p>`;
+
+                // Footer text
+                document.querySelector('.footer-text').innerHTML =
+                    `<p>${data.footer_text}</p>`;
+
+                // Footer links
+                document.querySelector('.footer-links').innerHTML =
+                    `<a href="mailto:${data.contact_email}">Contact</a>` +
+                    `<a href="${data.instagram_url}" target="_blank">Instagram</a>`;
+
+                // Crowdfunding section
+                let crowdHtml =
+                    `<p class="center">${data.crowdfunding_title}</p>` +
+                    `<p>${data.crowdfunding_description}</p>`;
+                data.tiers.forEach(tier => {
+                    crowdHtml +=
+                        `<div class="list-item" data-price="${tier.price}">` +
+                        `<div class="item-title">${tier.title}</div>` +
+                        `<div class="item-desc">${tier.description}</div>` +
+                        `</div>`;
+                });
+                document.getElementById('crowdfunding').innerHTML = crowdHtml;
+            });
+
+        // Netlify Identity redirect
+        if (window.netlifyIdentity) {
+            window.netlifyIdentity.on("init", user => {
+                if (!user) {
+                    window.netlifyIdentity.on("login", () => {
+                        document.location.href = "/admin/";
+                    });
+                }
+            });
+        }
+    </script>
+
+    <div class="fixed-logo">
+        <img src="logo_rosa.svg" alt="Rosa Logo">
+    </div>
+</body>
+</html>

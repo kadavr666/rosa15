@@ -1,0 +1,327 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #fff;
+    color: #000;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+}
+
+main {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "hero"
+        "col1"
+        "crowd"
+        "mlogo"
+        "col2";
+}
+
+.hero-container {
+    grid-area: hero;
+    position: relative;
+    height: 100vh;
+    margin: 0 auto 40px;
+    padding: 10px;
+}
+
+.hero-image {
+    width: auto;
+    height: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+.hero-hover {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+}
+
+.hero-container:hover .hero-hover {
+    display: block;
+}
+
+.hero-container:hover .hero-default {
+    visibility: hidden;
+}
+
+#about {
+    grid-area: col1;
+    max-width: 800px;
+    margin: 0 auto 40px;
+    padding: 0 20px 40px;
+    position: relative;
+}
+
+#about::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 1px;
+    background: #000;
+}
+
+#footer {
+    grid-area: col2;
+    padding: 0 20px 200px;
+    text-align: left;
+    line-height: 1.2;
+    min-height: 30vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.footer-links {
+    padding-top: 15px;
+    margin-bottom: 1.5em;
+}
+
+.footer-links a {
+    font-size: 22px;
+    color: #000;
+    text-decoration: none;
+    margin-right: 30px;
+    line-height: 1.2;
+    position: relative;
+}
+
+.footer-links a::before {
+    content: '(';
+    position: absolute;
+    left: -0.5em;
+    opacity: 0;
+}
+
+.footer-links a::after {
+    content: ')';
+    position: absolute;
+    right: -0.5em;
+    opacity: 0;
+}
+
+.footer-links a:hover::before,
+.footer-links a:hover::after {
+    opacity: 1;
+}
+
+.footer-text {
+    width: 100%;
+}
+
+.crowdfunding {
+    grid-area: crowd;
+    padding: 0 20px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.mobile-logo {
+    grid-area: mlogo;
+    display: none;
+}
+
+#about p {
+    font-size: 22px;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    margin-bottom: 1.5em;
+}
+
+#about p:last-child {
+    margin-bottom: 0;
+}
+
+.footer-text p {
+    font-size: 22px;
+    letter-spacing: 0.03em;
+}
+
+#about p.center {
+    text-align: center;
+    letter-spacing: 0.1em;
+}
+
+.crowdfunding::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 1px;
+    background: #000;
+}
+
+.crowdfunding p {
+    font-size: 22px;
+    line-height: 1.2;
+    margin-bottom: 1.5em;
+    letter-spacing: 0.03em;
+}
+
+.crowdfunding p.center {
+    text-align: center;
+    letter-spacing: 0.1em;
+}
+
+.crowdfunding .list-item {
+    padding: 10px 0;
+    padding-left: 90px;
+    position: relative;
+    border-top: 1px solid #000;
+}
+
+.crowdfunding .list-item::before {
+    content: attr(data-price);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+}
+
+.crowdfunding .item-title {
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    margin: 0;
+}
+
+.crowdfunding .item-desc {
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    padding-left: 1.5em;
+}
+
+.mobile-logo img {
+    width: 300px;
+    height: auto;
+}
+
+/* Fixed Logo */
+.fixed-logo {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 100;
+    mix-blend-mode: difference;
+}
+
+.fixed-logo img {
+    width: 300px;
+    height: auto;
+}
+
+/* Mobile Styles */
+@media (max-width: 1420px) {
+    main {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .hero-container {
+        height: auto;
+    }
+
+    .hero-image {
+        order: 1;
+        width: 100%;
+        height: auto;
+        margin-bottom: 0;
+        padding-bottom: 40px;
+    }
+
+    #about {
+        order: 2;
+    }
+
+    .crowdfunding {
+        order: 3;
+    }
+
+    .mobile-logo {
+        order: 4;
+        display: block;
+        padding: 20px 20px 0;
+        text-align: center;
+    }
+
+    #footer {
+        order: 5;
+        padding-top: 10px;
+        padding-bottom: 0;
+    }
+
+    .footer-text p {
+        line-height: 1.2;
+        letter-spacing: 0.03em;
+    }
+
+    .footer-content {
+        flex-direction: column-reverse;
+    }
+
+    .footer-links {
+        padding-top: 0;
+        margin-bottom: 0;
+        margin-top: 40px;
+        text-align: center;
+    }
+
+    .footer-links a::before,
+    .footer-links a::after {
+        opacity: 1;
+    }
+
+    .hero-image {
+        max-width: 50vw;
+    }
+
+    .fixed-logo {
+        display: none;
+    }
+}
+
+/* Phone */
+@media (max-width: 768px) {
+    #about p,
+    .footer-text p,
+    .footer-links a,
+    .crowdfunding p,
+    .crowdfunding .item-title,
+    .crowdfunding .item-desc,
+    .crowdfunding .list-item::before {
+        font-size: 20px;
+    }
+
+    .hero-image {
+        max-width: 100%;
+    }
+}
