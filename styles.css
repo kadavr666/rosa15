@@ -263,24 +263,12 @@ main {
         height: 50vh;
     }
 
-    .mobile-logo {
-        display: block;
-        padding: 20px 20px 0;
-        text-align: center;
-    }
-
     #footer {
         padding-top: 10px;
         padding-bottom: 0;
     }
 
-    .footer-content {
-        flex-direction: column-reverse;
-    }
-
     .footer-links {
-        margin-bottom: 0;
-        margin-top: 40px;
         text-align: center;
     }
 
@@ -289,9 +277,6 @@ main {
         opacity: 1;
     }
 
-    .fixed-logo {
-        display: none;
-    }
 }
 
 /* ── Phone ── */
@@ -307,4 +292,14 @@ main {
         font-size: 20px;
     }
 
+    .fixed-logo {
+        display: none;
+    }
+
+    .mobile-logo {
+        display: block;
+        padding: 20px;
+        text-align: center;
+        border-top: none;
+    }
 }
