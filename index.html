@@ -3,22 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antuni - Lusia Kazaryan (Margenrot)</title>
+    <title>Rosa 15</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .projects-grid {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            min-height: 60vh;
+        }
+
+        .projects-grid::-webkit-scrollbar {
+            height: 1px;
+        }
+
+        .projects-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .projects-grid::-webkit-scrollbar-thumb {
+            background: #000;
+        }
+
+        .project-card {
+            flex: 0 0 auto;
+            width: 40vw;
+            scroll-snap-align: start;
+            text-decoration: none;
+            color: #000;
+        }
+
+        .project-card {
+            perspective: 1500px;
+        }
+
+        .card-flip {
+            position: relative;
+            height: 55vh;
+            transform-style: preserve-3d;
+        }
+
+        .card-face {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+        }
+
+        .card-face img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        @keyframes card-spin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        .project-card-title {
+            font-size: 22px;
+            letter-spacing: 0.1em;
+            text-align: center;
+            padding: 20px 0;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 1420px) {
+            .project-card {
+                width: 70vw;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .project-card {
+                width: 85vw;
+            }
+
+            .card-flip {
+                height: 40vh;
+            }
+
+            .project-card-title {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
     <main>
-        <div class="hero-container" id="hero"></div>
-        <div id="sections"></div>
+        <div class="projects-grid" id="projects"></div>
         <footer id="footer">
             <div class="footer-content">
                 <div class="footer-links"></div>
                 <div class="footer-text"></div>
             </div>
         </footer>
-        <div class="mobile-logo">
-            <img src="logo_black.svg" alt="Rosa Logo">
-        </div>
     </main>
 
     <script>
@@ -38,52 +128,26 @@
                 .then(r => r.result);
         }
 
-        // Fetch first project and site settings
         Promise.all([
-            query('*[_type == "project"][0]{ title, heroImage, heroImageHover, sections }'),
+            query('*[_type == "project"]{ title, subtitle, slug, heroImage, heroImageHover } | order(_createdAt desc)'),
             query('*[_type == "siteSettings"][0]{ footerText, contactEmail, instagramUrl }'),
-        ]).then(([project, settings]) => {
-            // Hero images
-            if (project && project.heroImage) {
-                document.getElementById('hero').innerHTML =
-                    `<img src="${sanityImageUrl(project.heroImage.asset._ref)}" alt="${project.title || ''}" class="hero-image hero-default">` +
-                    (project.heroImageHover
-                        ? `<img src="${sanityImageUrl(project.heroImageHover.asset._ref)}" alt="${project.title || ''}" class="hero-image hero-hover">`
-                        : '');
-            } else {
-                document.getElementById('hero').innerHTML =
-                    `<img src="hero.jpg" alt="Antuni" class="hero-image hero-default">` +
-                    `<img src="hero2.jpg" alt="Antuni" class="hero-image hero-hover">`;
-            }
-
-            // Sections
-            if (project && project.sections) {
-                let html = '';
-                project.sections.forEach(section => {
-                    if (section._type === 'textSection') {
-                        html += `<div class="text-section">`;
-                        if (section.title || section.subtitle) {
-                            html += `<div class="title">${section.subtitle ? section.subtitle + '<br>' : ''}${section.title || ''}</div>`;
-                        }
-                        if (section.body) html += `<p>${section.body}</p>`;
-                        html += `</div>`;
-                    } else if (section._type === 'listSection') {
-                        html += `<section class="crowdfunding">`;
-                        if (section.title) html += `<div class="title">${section.title}</div>`;
-                        if (section.description) html += `<p>${section.description}</p>`;
-                        if (section.items) {
-                            section.items.forEach(item => {
-                                html +=
-                                    `<div class="list-item" data-price="${item.price || ''}">` +
-                                    `<div class="item-title">${item.title || ''}</div>` +
-                                    `<div class="item-desc">${item.description || ''}</div>` +
-                                    `</div>`;
-                            });
-                        }
-                        html += `</section>`;
-                    }
-                });
-                document.getElementById('sections').innerHTML = html;
+        ]).then(([projects, settings]) => {
+            // Projects grid
+            const grid = document.getElementById('projects');
+            if (projects && projects.length) {
+                grid.innerHTML = projects.map((p, i) => {
+                    const speed = 12 + Math.random() * 16;
+                    const front = p.heroImage ? sanityImageUrl(p.heroImage.asset._ref) : '';
+                    const back = p.heroImageHover ? sanityImageUrl(p.heroImageHover.asset._ref) : front;
+                    const slug = p.slug ? p.slug.current : '';
+                    return `<a class="project-card" href="project.html?slug=${slug}">` +
+                        `<div class="card-flip" style="animation: card-spin ${speed.toFixed(1)}s linear infinite">` +
+                        (front ? `<div class="card-face card-front"><img src="${front}" alt="${p.title || ''}"></div>` : '') +
+                        (back ? `<div class="card-face card-back"><img src="${back}" alt="${p.title || ''}"></div>` : '') +
+                        `</div>` +
+                        `<div class="project-card-title">${p.title || ''}${p.subtitle ? '<br>' + p.subtitle : ''}</div>` +
+                        `</a>`;
+                }).join('');
             }
 
             // Footer

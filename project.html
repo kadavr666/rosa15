@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antuni - Lusia Kazaryan (Margenrot)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main>
+        <div class="hero-container" id="hero"></div>
+        <div id="sections"></div>
+        <footer id="footer">
+            <div class="footer-content">
+                <div class="footer-links"></div>
+                <div class="footer-text"></div>
+            </div>
+        </footer>
+        <div class="mobile-logo">
+            <img src="logo_black.svg" alt="Rosa Logo">
+        </div>
+    </main>
+
+    <script>
+        const PROJECT_ID = 'hp2p0iij';
+        const DATASET = 'production';
+        const API = `https://${PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${DATASET}`;
+
+        function sanityImageUrl(ref) {
+            if (!ref) return '';
+            const [, id, dims, ext] = ref.split('-');
+            return `https://cdn.sanity.io/images/${PROJECT_ID}/${DATASET}/${id}-${dims}.${ext}`;
+        }
+
+        function query(q) {
+            return fetch(`${API}?query=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(r => r.result);
+        }
+
+        // Get slug from URL
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get('slug');
+        const projectQuery = slug
+            ? `*[_type == "project" && slug.current == "${slug}"][0]{ title, heroImage, heroImageHover, sections }`
+            : '*[_type == "project"][0]{ title, heroImage, heroImageHover, sections }';
+
+        // Fetch project and site settings
+        Promise.all([
+            query(projectQuery),
+            query('*[_type == "siteSettings"][0]{ footerText, contactEmail, instagramUrl }'),
+        ]).then(([project, settings]) => {
+            // Hero images
+            const heroEl = document.getElementById('hero');
+            let frontSrc = 'hero.jpg', backSrc = 'hero2.jpg', altText = 'Antuni';
+            if (project && project.heroImage) {
+                frontSrc = sanityImageUrl(project.heroImage.asset._ref);
+                altText = project.title || '';
+                if (project.heroImageHover) backSrc = sanityImageUrl(project.heroImageHover.asset._ref);
+            }
+            heroEl.innerHTML =
+                `<div class="hero-card">` +
+                `<div class="hero-face hero-front"><img src="${frontSrc}" alt="${altText}"></div>` +
+                `<div class="hero-face hero-back"><img src="${backSrc}" alt="${altText}"></div>` +
+                `</div>`;
+
+            // Sections
+            if (project && project.sections) {
+                let html = '';
+                project.sections.forEach(section => {
+                    if (section._type === 'textSection') {
+                        html += `<div class="text-section">`;
+                        if (section.title || section.subtitle) {
+                            html += `<div class="title">${section.subtitle ? section.subtitle + '<br>' : ''}${section.title || ''}</div>`;
+                        }
+                        if (section.body) html += `<p>${section.body}</p>`;
+                        html += `</div>`;
+                    } else if (section._type === 'listSection') {
+                        html += `<section class="crowdfunding">`;
+                        if (section.title) html += `<div class="title">${section.title}</div>`;
+                        if (section.description) html += `<p>${section.description}</p>`;
+                        if (section.items) {
+                            section.items.forEach(item => {
+                                html +=
+                                    `<div class="list-item" data-price="${item.price || ''}">` +
+                                    `<div class="item-title">${item.title || ''}</div>` +
+                                    `<div class="item-desc">${item.description || ''}</div>` +
+                                    `</div>`;
+                            });
+                        }
+                        html += `</section>`;
+                    }
+                });
+                document.getElementById('sections').innerHTML = html;
+            }
+
+            // Footer
+            if (settings) {
+                if (settings.footerText) {
+                    document.querySelector('.footer-text').innerHTML = `<p>${settings.footerText}</p>`;
+                }
+                let linksHtml = '';
+                if (settings.contactEmail) linksHtml += `<a href="mailto:${settings.contactEmail}">Contact</a>`;
+                if (settings.instagramUrl) linksHtml += `<a href="${settings.instagramUrl}" target="_blank">Instagram</a>`;
+                document.querySelector('.footer-links').innerHTML = linksHtml;
+            }
+        });
+    </script>
+
+    <div class="fixed-logo">
+        <img src="logo_rosa.svg" alt="Rosa Logo">
+    </div>
+</body>
+</html>

@@ -15,4 +15,13 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
   },
+
+  document: {
+    actions: (prev, context) => {
+      if (context.schemaType === 'project') {
+        return [...prev]
+      }
+      return prev
+    },
+  },
 })
