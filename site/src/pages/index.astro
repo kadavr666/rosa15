@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro';
+import Footer from '../components/Footer.astro';
+import { client, sanityImageUrl } from '../lib/sanity';
+
+const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slug, heroImage, heroImageHover } | order(_createdAt desc)');
+---
+<Base title="Rosa 15">
+    <div class="projects-grid">
+        {projects?.map((p: any, i: number) => {
+            const front = p.heroImage ? sanityImageUrl(p.heroImage.asset._ref) : '';
+            const back = p.heroImageHover ? sanityImageUrl(p.heroImageHover.asset._ref) : front;
+            const slug = p.slug?.current || '';
+            const speed = 12 + (i * 7 % 16);
+            return (
+                <a class="project-card" href={`/project/${slug}`}>
+                    <div class="card-flip" style={`animation: card-spin ${speed}s linear infinite`}>
+                        {front && <div class="card-face card-front"><img src={front} alt={p.title || ''} /></div>}
+                        {back && <div class="card-face card-back"><img src={back} alt={p.title || ''} /></div>}
+                    </div>
+                    <div class="project-card-title">
+                        {p.title || ''}{p.subtitle && <br />}{p.subtitle}
+                    </div>
+                </a>
+            );
+        })}
+    </div>
+    <Footer />
+</Base>
+
+<style>
+    .projects-grid {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 20px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        min-height: 60vh;
+    }
+    .projects-grid::-webkit-scrollbar { height: 1px; }
+    .projects-grid::-webkit-scrollbar-track { background: transparent; }
+    .projects-grid::-webkit-scrollbar-thumb { background: #000; }
+    .project-card {
+        flex: 0 0 auto;
+        width: 40vw;
+        scroll-snap-align: start;
+        text-decoration: none;
+        color: #000;
+        perspective: 1500px;
+    }
+    .card-flip {
+        position: relative;
+        height: 55vh;
+        transform-style: preserve-3d;
+    }
+    .card-face {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+    }
+    .card-face img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+    .card-back { transform: rotateY(180deg); }
+    @keyframes card-spin {
+        from { transform: rotateY(0deg); }
+        to { transform: rotateY(360deg); }
+    }
+    .project-card-title {
+        font-size: 22px;
+        letter-spacing: 0.1em;
+        text-align: center;
+        padding: 20px 0;
+        line-height: 1.2;
+    }
+    @media (max-width: 1420px) {
+        .project-card { width: 70vw; }
+    }
+    @media (max-width: 768px) {
+        .project-card { width: 85vw; }
+        .card-flip { height: 40vh; }
+        .project-card-title { font-size: 20px; }
+        .projects-grid { padding-bottom: 0; min-height: auto; }
+    }
+</style>

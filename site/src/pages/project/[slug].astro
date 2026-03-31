@@ -1,0 +1,64 @@
+---
+import Base from '../../layouts/Base.astro';
+import Footer from '../../components/Footer.astro';
+import { client, sanityImageUrl } from '../../lib/sanity';
+
+export async function getStaticPaths() {
+    const projects = await client.fetch('*[_type == "project"]{ slug }');
+    return projects
+        .filter((p: any) => p.slug?.current)
+        .map((p: any) => ({ params: { slug: p.slug.current } }));
+}
+
+const { slug } = Astro.params;
+const project = await client.fetch(
+    '*[_type == "project" && slug.current == $slug][0]{ title, subtitle, heroImage, heroImageHover, sections }',
+    { slug }
+);
+
+const frontSrc = project?.heroImage ? sanityImageUrl(project.heroImage.asset._ref) : '/hero.jpg';
+const backSrc = project?.heroImageHover ? sanityImageUrl(project.heroImageHover.asset._ref) : '/hero2.jpg';
+const title = project?.title || 'Project';
+---
+<Base title={`${title} - Rosa 15`}>
+    <div class="hero-container">
+        <div class="hero-card">
+            <div class="hero-face hero-front"><img src={frontSrc} alt={title} /></div>
+            <div class="hero-face hero-back"><img src={backSrc} alt={title} /></div>
+        </div>
+    </div>
+
+    <div id="sections">
+        {project?.sections?.map((section: any) => {
+            if (section._type === 'textSection') {
+                return (
+                    <div class="text-section">
+                        {(section.title || section.subtitle) && (
+                            <div class="title">
+                                {section.subtitle && <>{section.subtitle}<br /></>}
+                                {section.title}
+                            </div>
+                        )}
+                        {section.body && <p>{section.body}</p>}
+                    </div>
+                );
+            }
+            if (section._type === 'listSection') {
+                return (
+                    <section class="crowdfunding">
+                        {section.title && <div class="title">{section.title}</div>}
+                        {section.description && <p>{section.description}</p>}
+                        {section.items?.map((item: any) => (
+                            <div class="list-item" data-price={item.price || ''}>
+                                <div class="item-title">{item.title || ''}</div>
+                                <div class="item-desc">{item.description || ''}</div>
+                            </div>
+                        ))}
+                    </section>
+                );
+            }
+        })}
+    </div>
+
+    <Footer />
+</Base>

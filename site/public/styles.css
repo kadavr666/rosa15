@@ -1,0 +1,305 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #fff;
+    color: #000;
+    line-height: 1.2;
+    min-height: 100vh;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+}
+
+/* ── Layout ── */
+
+main {
+    width: 100%;
+}
+
+.hero-container {
+    height: 100vh;
+    padding: 10px;
+    margin-bottom: 40px;
+    perspective: 1500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-card {
+    position: relative;
+    height: 100%;
+    aspect-ratio: auto;
+    transform-style: preserve-3d;
+    animation: hero-spin 16s linear infinite;
+}
+
+.hero-face {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100%;
+    backface-visibility: hidden;
+}
+
+.hero-face img {
+    height: 100%;
+    width: auto;
+    display: block;
+}
+
+.hero-back {
+    transform: translateX(-50%) rotateY(180deg);
+}
+
+@keyframes hero-spin {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+}
+
+/* ── Sections ── */
+
+#sections > .text-section,
+#sections > .crowdfunding {
+    padding: 40px 20px;
+    position: relative;
+}
+
+#sections > .text-section::before,
+#sections > .crowdfunding::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 1px;
+    background: #000;
+}
+
+#sections > :first-child {
+    padding-top: 0;
+}
+
+#sections > :first-child::before {
+    display: none;
+}
+
+
+/* ── Text Section ── */
+
+.text-section {
+    max-width: 90ch;
+    margin: 0 auto;
+}
+
+.text-section p {
+    font-size: 22px;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    margin: 0 0 1.5em;
+}
+
+.text-section p:last-child {
+    margin-bottom: 0;
+}
+
+.title {
+    text-align: center;
+    letter-spacing: 0.1em;
+    font-size: 22px;
+    line-height: 1;
+    margin: 0 0 1.5em;
+}
+
+/* ── List Section ── */
+
+.crowdfunding {
+    max-width: 90ch;
+    margin: 0 auto;
+}
+
+.crowdfunding p {
+    font-size: 22px;
+    line-height: 1.2;
+    margin: 0 0 1.5em;
+    letter-spacing: 0.03em;
+}
+
+
+.crowdfunding .list-item {
+    padding: 10px 0;
+    padding-left: 90px;
+    position: relative;
+    border-top: 1px solid #000;
+}
+
+.crowdfunding .list-item::before {
+    content: attr(data-price);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+}
+
+.crowdfunding .item-title {
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    margin: 0;
+}
+
+.crowdfunding .item-desc {
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    padding-left: 1.5em;
+}
+
+/* ── Footer ── */
+
+#footer {
+    border-top: 1px solid #000;
+    padding: 20px 20px 200px;
+    text-align: left;
+    line-height: 1.2;
+    min-height: 30vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.footer-links {
+    margin-bottom: 1.5em;
+}
+
+.footer-links a {
+    font-size: 22px;
+    color: #000;
+    text-decoration: none;
+    margin-right: 30px;
+    line-height: 1.2;
+    position: relative;
+}
+
+.footer-links a::before {
+    content: '(';
+    position: absolute;
+    left: -0.5em;
+    opacity: 0;
+}
+
+.footer-links a::after {
+    content: ')';
+    position: absolute;
+    right: -0.5em;
+    opacity: 0;
+}
+
+.footer-links a:hover::before,
+.footer-links a:hover::after {
+    opacity: 1;
+}
+
+.footer-text {
+    width: 100%;
+}
+
+.footer-text p {
+    font-size: 22px;
+    letter-spacing: 0.03em;
+}
+
+/* ── Mobile Logo ── */
+
+.mobile-logo {
+    display: none;
+}
+
+.mobile-logo img {
+    width: 300px;
+    height: auto;
+}
+
+/* ── Fixed Logo ── */
+
+.fixed-logo {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 100;
+    mix-blend-mode: difference;
+}
+
+.fixed-logo img {
+    width: 300px;
+    height: auto;
+}
+
+/* ── Tablet ── */
+
+@media (max-width: 1420px) {
+    main {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .hero-container {
+        height: 50vh;
+    }
+
+    #footer {
+        padding-top: 10px;
+        padding-bottom: 0;
+    }
+
+    .footer-links {
+        text-align: center;
+    }
+
+    .footer-links a::before,
+    .footer-links a::after {
+        opacity: 1;
+    }
+
+}
+
+/* ── Phone ── */
+
+@media (max-width: 768px) {
+    .text-section p,
+    .footer-text p,
+    .footer-links a,
+    .crowdfunding p,
+    .crowdfunding .item-title,
+    .crowdfunding .item-desc,
+    .crowdfunding .list-item::before {
+        font-size: 20px;
+    }
+
+    .fixed-logo {
+        display: none;
+    }
+
+    .mobile-logo {
+        display: block;
+        padding: 20px;
+        text-align: center;
+        border-top: none;
+    }
+}

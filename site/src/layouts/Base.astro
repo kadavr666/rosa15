@@ -1,0 +1,23 @@
+---
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <main>
+        <slot />
+    </main>
+    <a href="/" class="fixed-logo">
+        <img src="/logo_rosa.svg" alt="Rosa Logo">
+    </a>
+</body>
+</html>

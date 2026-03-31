@@ -1,0 +1,19 @@
+---
+import { client } from '../lib/sanity';
+
+const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText, contactEmail, instagramUrl }');
+---
+<footer id="footer">
+    <div class="footer-content">
+        <div class="footer-links">
+            {settings?.contactEmail && <a href={`mailto:${settings.contactEmail}`}>Contact</a>}
+            {settings?.instagramUrl && <a href={settings.instagramUrl} target="_blank">Instagram</a>}
+        </div>
+        <div class="footer-text">
+            {settings?.footerText && <p>{settings.footerText}</p>}
+        </div>
+    </div>
+</footer>
+<a href="/" class="mobile-logo">
+    <img src="/logo_black.svg" alt="Rosa Logo">
+</a>
