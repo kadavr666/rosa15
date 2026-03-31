@@ -1,3 +1,4 @@
 [build]
-  command = "cd studio && npm install && npx sanity build ../site/public/studio && cd ../site && npm install && npm run build"
-  publish = "site/dist"
+  base = "site"
+  command = "npm run build"
+  publish = "dist"
