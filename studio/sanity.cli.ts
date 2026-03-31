@@ -5,9 +5,8 @@ export default defineCliConfig({
     projectId: 'hp2p0iij',
     dataset: 'production'
   },
-  /**
-   * Enable auto-updates for studios.
-   * Learn more at https://www.sanity.io/docs/cli#auto-updates
-   */
+  vite: {
+    base: '/studio/',
+  },
   autoUpdates: true,
 })
