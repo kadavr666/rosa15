@@ -1,0 +1,180 @@
+---
+/*
+  Logo component: SVG lines + HTML text at 22px.
+  All coordinates are 1:1 pixels from logo-lab.html (no scaling).
+  Interactive: ПОЗА → HOME on hover, @ rotates and links to contact.
+*/
+import { client } from '../lib/sanity';
+
+interface Props {
+  debug?: boolean;
+  fixed?: boolean;
+}
+const { debug = false, fixed = true } = Astro.props;
+
+const settings = await client.fetch('*[_type == "siteSettings"][0]{ contactEmail }');
+const contactEmail = settings?.contactEmail || '';
+---
+
+<div class={`${fixed ? 'fixed-logo' : 'inline-logo'}${debug ? ' logo-debug' : ''}`}>
+    <div class="logo-container">
+        <img src="/logo_lines.svg" alt="" class="logo-svg" />
+
+        <!-- HOME zone: ПОЗА → HOME on hover -->
+        <a href="/" class="home-zone">
+            <span class="logo-text home-letter" style="left:30px; top:30px; transform:translate(-50%, -50%);" data-default="P" data-hover="H">P</span>
+            <span class="logo-text home-letter" style="left:90px; top:30px; transform:translate(-50%, -50%);" data-default="O" data-hover="O">O</span>
+            <span class="logo-text home-letter" style="left:30px; top:90px; transform:translate(-50%, -50%);" data-default="З" data-hover="M">З</span>
+            <span class="logo-text home-letter" style="left:90px; top:90px; transform:translate(-50%, -50%);" data-default="A" data-hover="E">A</span>
+        </a>
+
+        <!-- @ contact button -->
+        <a href={contactEmail ? `mailto:${contactEmail}` : '#'} class="contact-zone">
+            <span class="logo-text contact-at" style="left:30px; top:30px; transform:translate(-50%, -50%);">@</span>
+        </a>
+
+        <!-- 15 house number: swings on nail hover -->
+        <div class="num-zone">
+            <span class="num-anchor">
+                <span class="logo-text num-text">15</span>
+            </span>
+        </div>
+        <span class="logo-text" style="left:240px; top:195px; transform:translate(0%, -50%);">Rosa</span>
+        <span class="logo-text" style="left:180px; top:225px; transform:translate(0%, -50%);">Luxemburg 15,</span>
+        <span class="logo-text" style="left:120px; top:255px; transform:translate(0%, -50%);">Kropotkin</span>
+    </div>
+</div>
+
+<style>
+    .logo-container {
+        position: relative;
+        width: 315px;
+        height: 270px;
+    }
+
+    .logo-svg {
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        width: 182px;
+        height: 243px;
+    }
+
+    .logo-text {
+        position: absolute;
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 22px;
+        line-height: 1;
+        letter-spacing: 0.05em;
+        color: #fff;
+        text-decoration: none;
+        pointer-events: none;
+        white-space: nowrap;
+        -webkit-font-smoothing: auto;
+        -moz-osx-font-smoothing: auto;
+    }
+
+    /* HOME zone */
+    .home-zone {
+        position: absolute;
+        left: 0;
+        top: 120px;
+        width: 120px;
+        height: 120px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .home-zone:hover .home-letter {
+        /* JS handles text swap */
+    }
+
+    /* @ contact zone */
+    .contact-zone {
+        position: absolute;
+        left: 120px;
+        top: 120px;
+        width: 60px;
+        height: 60px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .contact-zone:hover .contact-at {
+        animation: spin-at 0.6s linear infinite;
+    }
+
+    @keyframes spin-at {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* 15 house number zone */
+    .num-zone {
+        position: absolute;
+        left: 0;
+        top: 70px;
+        width: 120px;
+        height: 50px;
+        cursor: pointer;
+    }
+
+    .num-anchor {
+        position: absolute;
+        left: 60px;
+        top: 25px;
+        transform: translate(-50%, -50%);
+    }
+
+    .num-text {
+        position: relative;
+        display: block;
+        transform-origin: 50% 100%;
+    }
+
+    .num-zone:hover .num-text {
+        animation: swing-number 1.2s ease-out forwards;
+    }
+
+    @keyframes swing-number {
+        0%   { transform: rotate(0deg); }
+        15%  { transform: rotate(200deg); }
+        35%  { transform: rotate(155deg); }
+        50%  { transform: rotate(190deg); }
+        65%  { transform: rotate(173deg); }
+        80%  { transform: rotate(183deg); }
+        100% { transform: rotate(180deg); }
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+        .logo-text {
+            font-size: 20px;
+        }
+    }
+
+    /* Debug grid */
+    .logo-debug .logo-container {
+        background-image:
+            linear-gradient(rgba(0, 100, 255, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 100, 255, 0.08) 1px, transparent 1px);
+        background-size: 5px 5px;
+    }
+
+    .logo-debug .logo-text {
+        outline: 1px dashed rgba(255, 0, 0, 0.3);
+    }
+</style>
+
+<script>
+    const homeZone = document.querySelector('.home-zone');
+    if (homeZone) {
+        const letters = homeZone.querySelectorAll('.home-letter');
+        homeZone.addEventListener('mouseenter', () => {
+            letters.forEach(el => { el.textContent = el.dataset.hover!; });
+        });
+        homeZone.addEventListener('mouseleave', () => {
+            letters.forEach(el => { el.textContent = el.dataset.default!; });
+        });
+    }
+</script>

@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Lab</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Canvas ── */
+        .canvas-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            gap: 16px;
+            overflow: auto;
+        }
+
+        .zoom-bar {
+            display: flex;
+            gap: 4px;
+            background: #e8e8e8;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+        .zoom-bar button {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            color: #555;
+        }
+        .zoom-bar button:hover {
+            background: #ddd;
+        }
+        .canvas-wrap svg {
+            display: block;
+            background: #fff;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        /* ── Panel ── */
+        .panel {
+            width: 300px;
+            background: #fff;
+            border-left: 1px solid #ddd;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .panel h2 {
+            font-size: 14px;
+            margin: 0 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #333;
+        }
+        .panel h3 {
+            font-size: 12px;
+            margin: 16px 0 8px;
+            color: #666;
+        }
+        .panel label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+        .panel input[type="number"] {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .panel input[type="text"] {
+            flex: 1;
+            padding: 4px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .panel select {
+            padding: 4px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .panel button {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 4px 4px 4px 0;
+        }
+        .panel button:hover { background: #f0f0f0; }
+        .panel button.primary { background: #000; color: #fff; border-color: #000; }
+        .panel button.primary:hover { background: #333; }
+        .panel button.danger { color: #c00; border-color: #c00; }
+
+        .item-list {
+            margin: 8px 0;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .item-entry {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .item-entry:last-child { border-bottom: none; }
+        .item-entry:hover { background: #f9f9f9; }
+        .item-entry.selected { background: #e8f0ff; }
+        .item-entry .item-label { font-weight: bold; }
+        .item-entry .item-coords { color: #888; font-size: 11px; }
+
+        .coords-display {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            pointer-events: none;
+        }
+
+        hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+
+        #export-output {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+            font-size: 11px;
+            margin-top: 8px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="canvas-wrap">
+    <div class="zoom-bar">
+        <button onclick="setZoom(50)">50%</button>
+        <button onclick="setZoom(100)">100%</button>
+        <button onclick="setZoom(150)">150%</button>
+        <button onclick="setZoom(200)">200%</button>
+        <button onclick="setZoom(300)">300%</button>
+        <button onclick="setZoom(400)">400%</button>
+        <button onclick="setZoom(600)">600%</button>
+        <button onclick="setZoom(800)">800%</button>
+        <button onclick="setZoom(1000)">1000%</button>
+    </div>
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 340 310" width="340" height="310">
+        <!-- Grid: 1 unit = 1 pixel. Container is 300×270. -->
+        <defs>
+            <pattern id="grid-sm" width="2.5" height="2.5" patternUnits="userSpaceOnUse">
+                <path d="M 2.5 0 L 0 0 0 2.5" fill="none" stroke="rgba(0,100,255,0.08)" stroke-width="0.5"/>
+            </pattern>
+            <pattern id="grid-md" width="30" height="30" patternUnits="userSpaceOnUse">
+                <rect width="30" height="30" fill="url(#grid-sm)"/>
+                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(0,100,255,0.15)" stroke-width="0.5"/>
+            </pattern>
+            <pattern id="grid-lg" width="60" height="60" patternUnits="userSpaceOnUse">
+                <rect width="60" height="60" fill="url(#grid-md)"/>
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,100,255,0.25)" stroke-width="0.5"/>
+            </pattern>
+        </defs>
+        <rect x="0" y="0" width="300" height="270" fill="url(#grid-lg)" stroke="rgba(0,100,255,0.4)" stroke-width="0.5"/>
+
+        <!-- Coordinate labels -->
+        <g id="coord-labels" fill="rgba(0,100,255,0.4)" font-size="8" font-family="Helvetica, sans-serif">
+            <text x="0" y="-4">0</text>
+            <text x="60" y="-4">60</text>
+            <text x="120" y="-4">120</text>
+            <text x="180" y="-4">180</text>
+            <text x="240" y="-4">240</text>
+            <text x="300" y="-4">300</text>
+            <text x="-4" y="60" text-anchor="end">60</text>
+            <text x="-4" y="120" text-anchor="end">120</text>
+            <text x="-4" y="180" text-anchor="end">180</text>
+            <text x="-4" y="240" text-anchor="end">240</text>
+            <text x="-4" y="270" text-anchor="end">270</text>
+        </g>
+
+        <!-- User elements: text behind, lines on top -->
+        <g id="user-texts"></g>
+        <g id="user-lines"></g>
+    </svg>
+</div>
+
+<div class="panel">
+    <h2>Logo Lab</h2>
+
+    <h3>Add element</h3>
+    <button class="primary" onclick="addText()">+ Text</button>
+    <button class="primary" onclick="addLine()">+ Line</button>
+
+    <h3>Selection</h3>
+    <button onclick="selectAll()">Select all</button>
+    <button onclick="clearSelection()">Deselect</button>
+
+    <h3>Elements</h3>
+    <div id="item-list" class="item-list"></div>
+
+    <div id="edit-section" style="display:none">
+        <hr>
+        <h3>Edit selected</h3>
+        <div id="edit-fields"></div>
+        <div style="margin-top:12px">
+            <button onclick="duplicateSelected()">Duplicate</button>
+            <button class="danger" onclick="deleteSelected()">Delete</button>
+        </div>
+    </div>
+
+    <hr>
+    <h3>Mouse position</h3>
+    <div id="mouse-pos" style="font-family:monospace; color:#666;">x: — y: —</div>
+
+    <hr>
+    <h3>Save / Load</h3>
+    <button class="primary" onclick="saveToStorage()">Save</button>
+    <button onclick="loadFromStorage()">Load</button>
+    <div id="save-status" style="color:#888;font-size:11px;margin-top:4px;"></div>
+
+    <hr>
+    <h3>Export SVG code</h3>
+    <button onclick="exportCode()">Copy elements</button>
+    <textarea id="export-output" readonly></textarea>
+</div>
+
+<script>
+const svg = document.getElementById('canvas');
+
+function setZoom(pct) {
+    const scale = pct / 100;
+    svg.setAttribute('width', 340 * scale);
+    svg.setAttribute('height', 310 * scale);
+}
+const textLayer = document.getElementById('user-texts');
+const lineLayer = document.getElementById('user-lines');
+const itemList = document.getElementById('item-list');
+const editSection = document.getElementById('edit-section');
+const editFields = document.getElementById('edit-fields');
+const mousePos = document.getElementById('mouse-pos');
+
+let items = [
+    { id: 1, type: 'line', x1: 0, y1: 123, x2: 0, y2: 237, strokeWidth: 1 },
+    { id: 2, type: 'line', x1: 120, y1: 123, x2: 120, y2: 237, strokeWidth: 1 },
+    { id: 3, type: 'line', x1: 3, y1: 120, x2: 117, y2: 120, strokeWidth: 1 },
+    { id: 4, type: 'line', x1: 3, y1: 240, x2: 117, y2: 240, strokeWidth: 1 },
+    { id: 5, type: 'line', x1: 3, y1: 117, x2: 57, y2: 63, strokeWidth: 1 },
+    { id: 6, type: 'line', x1: 63, y1: 57, x2: 117, y2: 3, strokeWidth: 1 },
+    { id: 7, type: 'line', x1: 63, y1: 63, x2: 117, y2: 117, strokeWidth: 1 },
+    { id: 8, type: 'line', x1: 123, y1: 237, x2: 177, y2: 183, strokeWidth: 1 },
+    { id: 9, type: 'line', x1: 180, y1: 63, x2: 180, y2: 180, strokeWidth: 1 },
+    { id: 10, type: 'line', x1: 123, y1: 117, x2: 177, y2: 63, strokeWidth: 1 },
+    { id: 11, type: 'line', x1: 123, y1: 3, x2: 177, y2: 57, strokeWidth: 1 },
+    { id: 12, type: 'text', x: 0, y: 120, w: 60, h: 60, text: 'P', fontSize: 22, fontFamily: "'Times New Roman', serif" },
+    { id: 13, type: 'text', x: 60, y: 120, w: 60, h: 60, text: 'O', fontSize: 22, fontFamily: "'Times New Roman', serif" },
+    { id: 14, type: 'text', x: 0, y: 180, w: 60, h: 60, text: 'З', fontSize: 22, fontFamily: "'Times New Roman', serif" },
+    { id: 15, type: 'text', x: 60, y: 180, w: 60, h: 60, text: 'A', fontSize: 22, fontFamily: "'Times New Roman', serif" },
+    { id: 16, type: 'text', x: 0, y: 70, w: 120, h: 50, text: '15', fontSize: 22, fontFamily: "'Times New Roman', serif" },
+    { id: 17, type: 'text', x: 240, y: 180, w: 60, h: 30, text: 'Rosa ', fontSize: 22, fontFamily: "'Times New Roman', serif", textAlign: 'left' },
+    { id: 18, type: 'text', x: 180, y: 210, w: 135, h: 30, text: 'Luxemburg 15,', fontSize: 22, fontFamily: "'Times New Roman', serif", textAlign: 'left' },
+    { id: 19, type: 'text', x: 120, y: 240, w: 120, h: 30, text: 'Kropotkin', fontSize: 22, fontFamily: "'Times New Roman', serif", textAlign: 'left' },
+    { id: 20, type: 'text', x: 120, y: 120, w: 60, h: 60, text: '@', fontSize: 22, fontFamily: "'Times New Roman', serif" },
+];
+let selected = new Set();
+let nextId = 21;
+let dragging = null;
+let draggingEndpoint = null;
+let selectedEndpoint = null; // { id, end: 'start'|'end' }
+let dragOffset = { x: 0, y: 0 };
+let dragStartPositions = {};
+
+// Undo/redo
+let history = [JSON.stringify(items)];
+let historyIndex = 0;
+
+function saveHistory() {
+    // Trim any redo states
+    history = history.slice(0, historyIndex + 1);
+    history.push(JSON.stringify(items));
+    historyIndex = history.length - 1;
+    if (history.length > 100) { history.shift(); historyIndex--; }
+}
+
+function undo() {
+    if (historyIndex <= 0) return;
+    historyIndex--;
+    items = JSON.parse(history[historyIndex]);
+    render();
+    showEdit();
+}
+
+function redo() {
+    if (historyIndex >= history.length - 1) return;
+    historyIndex++;
+    items = JSON.parse(history[historyIndex]);
+    render();
+    showEdit();
+}
+
+function svgPoint(e) {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const ctm = svg.getScreenCTM().inverse();
+    return pt.matrixTransform(ctm);
+}
+
+function selectAll() {
+    items.forEach(i => selected.add(i.id));
+    render();
+    showEdit();
+}
+
+function clearSelection() {
+    selected.clear();
+    editSection.style.display = 'none';
+    render();
+}
+
+function moveItem(item, dx, dy) {
+    if (item.type === 'text') {
+        item.x += dx;
+        item.y += dy;
+    } else if (item.type === 'line') {
+        item.x1 += dx; item.y1 += dy;
+        item.x2 += dx; item.y2 += dy;
+    }
+}
+
+svg.addEventListener('mousemove', (e) => {
+    const p = svgPoint(e);
+    mousePos.textContent = `x: ${p.x.toFixed(1)}  y: ${p.y.toFixed(1)}`;
+
+    if (draggingEndpoint) {
+        const item = items.find(i => i.id === draggingEndpoint.id);
+        if (!item) return;
+        const sx = Math.round(p.x / 1) * 1;
+        const sy = Math.round(p.y / 1) * 1;
+        if (draggingEndpoint.end === 'start') {
+            item.x1 = sx; item.y1 = sy;
+        } else {
+            item.x2 = sx; item.y2 = sy;
+        }
+        render();
+        showEdit();
+        return;
+    }
+
+    if (dragging) {
+        const snappedX = Math.round((p.x - dragOffset.x) / 1) * 1;
+        const snappedY = Math.round((p.y - dragOffset.y) / 1) * 1;
+        const anchor = dragStartPositions[dragging];
+        if (!anchor) return;
+        const dx = snappedX - anchor.x;
+        const dy = snappedY - anchor.y;
+
+        // Move all selected items relative to their start positions
+        selected.forEach(id => {
+            const item = items.find(i => i.id === id);
+            const start = dragStartPositions[id];
+            if (!item || !start) return;
+            if (item.type === 'text') {
+                item.x = start.x + dx;
+                item.y = start.y + dy;
+            } else if (item.type === 'line') {
+                item.x1 = start.x + dx;
+                item.y1 = start.y + dy;
+                item.x2 = start.x2 + dx;
+                item.y2 = start.y2 + dy;
+            }
+        });
+        render();
+        showEdit();
+    }
+});
+
+svg.addEventListener('mouseup', () => {
+    if (dragging || draggingEndpoint) saveHistory();
+    dragging = null; draggingEndpoint = null;
+});
+svg.addEventListener('mouseleave', () => {
+    if (dragging || draggingEndpoint) saveHistory();
+    dragging = null; draggingEndpoint = null;
+});
+
+function startDrag(item, e) {
+    e.preventDefault();
+    const p = svgPoint(e);
+    selectedEndpoint = null;
+
+    // If clicking an unselected item without Shift, select only it
+    if (!e.shiftKey && !selected.has(item.id)) {
+        selected.clear();
+        selected.add(item.id);
+    } else if (e.shiftKey) {
+        if (selected.has(item.id)) selected.delete(item.id);
+        else selected.add(item.id);
+        render();
+        showEdit();
+        return;
+    }
+
+    // Ensure clicked item is selected
+    selected.add(item.id);
+
+    dragging = item.id;
+    if (item.type === 'text') {
+        dragOffset = { x: p.x - item.x, y: p.y - item.y };
+    } else {
+        dragOffset = { x: p.x - item.x1, y: p.y - item.y1 };
+    }
+
+    // Save start positions for all selected items
+    dragStartPositions = {};
+    selected.forEach(id => {
+        const it = items.find(i => i.id === id);
+        if (!it) return;
+        if (it.type === 'text') {
+            dragStartPositions[id] = { x: it.x, y: it.y };
+        } else {
+            dragStartPositions[id] = { x: it.x1, y: it.y1, x2: it.x2, y2: it.y2 };
+        }
+    });
+
+    render();
+    showEdit();
+}
+
+function addText() {
+    const id = nextId++;
+    items.push({
+        id, type: 'text',
+        x: 120, y: 120,
+        w: 40, h: 25,
+        text: 'Text',
+        fontSize: 14,
+        fontFamily: "'Times New Roman', serif"
+    });
+    selected.clear();
+    selected.add(id);
+    render();
+    showEdit();
+}
+
+function addLine() {
+    const id = nextId++;
+    items.push({
+        id, type: 'line',
+        x1: 110, y1: 150,
+        x2: 200, y2: 150,
+        strokeWidth: 1
+    });
+    selected.clear();
+    selected.add(id);
+    render();
+    showEdit();
+}
+
+function render() {
+    textLayer.innerHTML = '';
+    lineLayer.innerHTML = '';
+    items.forEach(item => {
+        const isSelected = selected.has(item.id);
+        if (item.type === 'text') {
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', item.x);
+            rect.setAttribute('y', item.y);
+            rect.setAttribute('width', item.w);
+            rect.setAttribute('height', item.h);
+            rect.setAttribute('fill', 'transparent');
+            rect.setAttribute('stroke', isSelected ? 'rgba(0,102,255,0.5)' : 'rgba(0,0,0,0.15)');
+            rect.setAttribute('stroke-width', 0.5);
+            rect.setAttribute('stroke-dasharray', isSelected ? 'none' : '2 1');
+            rect.setAttribute('style', 'cursor:move;');
+            rect.addEventListener('mousedown', (e) => startDrag(item, e));
+            textLayer.appendChild(rect);
+            const align = item.textAlign || 'center';
+            const anchorMap = { left: 'start', center: 'middle', right: 'end' };
+            const xMap = { left: item.x, center: item.x + item.w / 2, right: item.x + item.w };
+            const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            el.setAttribute('x', xMap[align]);
+            el.setAttribute('y', item.y + item.h / 2);
+            el.setAttribute('font-size', item.fontSize);
+            el.setAttribute('font-family', item.fontFamily);
+            el.setAttribute('fill', isSelected ? '#0066ff' : '#000');
+            el.setAttribute('text-anchor', anchorMap[align]);
+            el.setAttribute('dominant-baseline', 'central');
+            el.setAttribute('style', 'cursor:move; user-select:none; pointer-events:none;');
+            el.textContent = item.text;
+            textLayer.appendChild(el);
+        } else if (item.type === 'line') {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            el.setAttribute('x1', item.x1);
+            el.setAttribute('y1', item.y1);
+            el.setAttribute('x2', item.x2);
+            el.setAttribute('y2', item.y2);
+            el.setAttribute('stroke', isSelected ? '#0066ff' : '#000');
+            el.setAttribute('stroke-width', item.strokeWidth);
+            el.setAttribute('style', 'cursor:move;');
+            const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            hit.setAttribute('x1', item.x1);
+            hit.setAttribute('y1', item.y1);
+            hit.setAttribute('x2', item.x2);
+            hit.setAttribute('y2', item.y2);
+            hit.setAttribute('stroke', 'transparent');
+            hit.setAttribute('stroke-width', 6);
+            hit.setAttribute('style', 'cursor:move;');
+            hit.addEventListener('mousedown', (e) => startDrag(item, e));
+            lineLayer.appendChild(el);
+            lineLayer.appendChild(hit);
+            // Endpoint handles when selected
+            if (isSelected) {
+                [['start', item.x1, item.y1], ['end', item.x2, item.y2]].forEach(([end, cx, cy]) => {
+                    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    hitArea.setAttribute('cx', cx);
+                    hitArea.setAttribute('cy', cy);
+                    hitArea.setAttribute('r', 5);
+                    hitArea.setAttribute('fill', 'transparent');
+                    hitArea.setAttribute('style', 'cursor:crosshair;');
+                    hitArea.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        saveHistory();
+                        selectedEndpoint = { id: item.id, end };
+                        draggingEndpoint = { id: item.id, end };
+                        render();
+                    });
+                    lineLayer.appendChild(hitArea);
+                    const isActiveEndpoint = selectedEndpoint && selectedEndpoint.id === item.id && selectedEndpoint.end === end;
+                    const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    handle.setAttribute('cx', cx);
+                    handle.setAttribute('cy', cy);
+                    handle.setAttribute('r', isActiveEndpoint ? 1.5 : 1);
+                    handle.setAttribute('fill', isActiveEndpoint ? '#ff0000' : 'none');
+                    handle.setAttribute('stroke', isActiveEndpoint ? '#ff0000' : '#0066ff');
+                    handle.setAttribute('stroke-width', 0.3);
+                    handle.setAttribute('style', 'pointer-events:none;');
+                    lineLayer.appendChild(handle);
+                });
+            }
+        }
+    });
+    renderList();
+}
+
+function renderList() {
+    itemList.innerHTML = '';
+    if (items.length === 0) {
+        itemList.innerHTML = '<div style="padding:8px;color:#999;">No elements yet</div>';
+        return;
+    }
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item-entry' + (selected.has(item.id) ? ' selected' : '');
+        if (item.type === 'text') {
+            div.innerHTML = `<div class="item-label">"${item.text}"</div><div class="item-coords">box:(${item.x},${item.y}) ${item.w}×${item.h}</div>`;
+        } else {
+            div.innerHTML = `<div class="item-label">Line</div><div class="item-coords">(${item.x1},${item.y1}) → (${item.x2},${item.y2})</div>`;
+        }
+        div.addEventListener('click', (e) => {
+            if (e.shiftKey) {
+                if (selected.has(item.id)) selected.delete(item.id);
+                else selected.add(item.id);
+            } else {
+                selected.clear();
+                selected.add(item.id);
+            }
+            render();
+            showEdit();
+        });
+        itemList.appendChild(div);
+    });
+}
+
+function showEdit() {
+    if (selected.size === 0) {
+        editSection.style.display = 'none';
+        return;
+    }
+    editSection.style.display = 'block';
+    editFields.innerHTML = '';
+
+    if (selected.size > 1) {
+        editFields.innerHTML = `<div style="color:#666">${selected.size} elements selected</div>
+            <div style="margin-top:8px;color:#888;font-size:11px">Drag or use arrow keys to move together.<br>Shift+click to toggle items.</div>`;
+        return;
+    }
+
+    const id = [...selected][0];
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    if (item.type === 'text') {
+        editFields.innerHTML = `
+            <label>Text <input type="text" value="${item.text}" oninput="updateItem(${id}, 'text', this.value)"></label>
+            <div style="display:flex;gap:8px">
+                <label>x <input type="number" value="${item.x}" step="5" oninput="updateItem(${id}, 'x', +this.value)"></label>
+                <label>y <input type="number" value="${item.y}" step="5" oninput="updateItem(${id}, 'y', +this.value)"></label>
+            </div>
+            <div style="display:flex;gap:8px">
+                <label>w <input type="number" value="${item.w}" step="5" min="5" oninput="updateItem(${id}, 'w', +this.value)"></label>
+                <label>h <input type="number" value="${item.h}" step="5" min="5" oninput="updateItem(${id}, 'h', +this.value)"></label>
+            </div>
+            <label>Font size <input type="number" value="${item.fontSize}" step="1" oninput="updateItem(${id}, 'fontSize', +this.value)"></label>
+            <label>Align
+                <select onchange="updateItem(${id}, 'textAlign', this.value)">
+                    <option value="center" ${(item.textAlign || 'center') === 'center' ? 'selected' : ''}>Center</option>
+                    <option value="left" ${item.textAlign === 'left' ? 'selected' : ''}>Left</option>
+                    <option value="right" ${item.textAlign === 'right' ? 'selected' : ''}>Right</option>
+                </select>
+            </label>
+            <label>Font
+                <select onchange="updateItem(${id}, 'fontFamily', this.value)">
+                    <option value="'Times New Roman', serif" ${item.fontFamily.includes('Times') ? 'selected' : ''}>Times New Roman</option>
+                    <option value="Helvetica, sans-serif" ${item.fontFamily.includes('Helvetica') ? 'selected' : ''}>Helvetica</option>
+                    <option value="Georgia, serif" ${item.fontFamily.includes('Georgia') ? 'selected' : ''}>Georgia</option>
+                    <option value="monospace" ${item.fontFamily === 'monospace' ? 'selected' : ''}>Monospace</option>
+                </select>
+            </label>
+        `;
+    } else if (item.type === 'line') {
+        editFields.innerHTML = `
+            <label>x1 <input type="number" value="${item.x1}" step="5" oninput="updateItem(${id}, 'x1', +this.value)"></label>
+            <label>y1 <input type="number" value="${item.y1}" step="5" oninput="updateItem(${id}, 'y1', +this.value)"></label>
+            <label>x2 <input type="number" value="${item.x2}" step="5" oninput="updateItem(${id}, 'x2', +this.value)"></label>
+            <label>y2 <input type="number" value="${item.y2}" step="5" oninput="updateItem(${id}, 'y2', +this.value)"></label>
+            <label>Width <input type="number" value="${item.strokeWidth}" step="0.5" min="0.5" oninput="updateItem(${id}, 'strokeWidth', +this.value)"></label>
+        `;
+    }
+}
+
+function updateItem(id, key, value) {
+    const item = items.find(i => i.id === id);
+    if (item) {
+        saveHistory();
+        item[key] = value;
+        render();
+    }
+}
+
+function duplicateSelected() {
+    saveHistory();
+    const newSelected = new Set();
+    selected.forEach(id => {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        const newId = nextId++;
+        const copy = { ...item, id: newId };
+        if (copy.type === 'text') { copy.x += 10; copy.y += 10; }
+        else { copy.x1 += 10; copy.y1 += 10; copy.x2 += 10; copy.y2 += 10; }
+        items.push(copy);
+        newSelected.add(newId);
+    });
+    selected = newSelected;
+    render();
+    showEdit();
+}
+
+function deleteSelected() {
+    saveHistory();
+    items = items.filter(i => !selected.has(i.id));
+    selected.clear();
+    editSection.style.display = 'none';
+    render();
+}
+
+function exportCode() {
+    const out = document.getElementById('export-output');
+    let code = '';
+    items.forEach(item => {
+        if (item.type === 'text') {
+            const align = item.textAlign || 'center';
+            const anchorMap = { left: 'start', center: 'middle', right: 'end' };
+            const xMap = { left: item.x, center: item.x + item.w/2, right: item.x + item.w };
+            code += `<!-- box: x=${item.x} y=${item.y} w=${item.w} h=${item.h} align=${align} -->\n`;
+            code += `<text x="${xMap[align]}" y="${item.y + item.h/2}" font-family="${item.fontFamily}" font-size="${item.fontSize}" fill="#000" text-anchor="${anchorMap[align]}" dominant-baseline="central">${item.text}</text>\n`;
+        } else {
+            code += `<line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="#000" stroke-width="${item.strokeWidth}"/>\n`;
+        }
+    });
+    out.value = code;
+    out.select();
+    navigator.clipboard.writeText(code).catch(() => {});
+}
+
+function saveToStorage() {
+    localStorage.setItem('logo-lab-items', JSON.stringify(items));
+    document.getElementById('save-status').textContent = 'Saved ' + new Date().toLocaleTimeString();
+}
+
+function loadFromStorage() {
+    const data = localStorage.getItem('logo-lab-items');
+    if (!data) { document.getElementById('save-status').textContent = 'No saved data'; return; }
+    saveHistory();
+    items = JSON.parse(data);
+    nextId = Math.max(...items.map(i => i.id)) + 1;
+    selected.clear();
+    editSection.style.display = 'none';
+    render();
+    document.getElementById('save-status').textContent = 'Loaded';
+}
+
+// Click on canvas background to deselect
+svg.addEventListener('click', (e) => {
+    if (e.target === svg || e.target.closest('#grid-sm') || e.target.closest('#grid-lg') || (e.target.tagName === 'rect' && !e.target.closest('#user-texts') && !e.target.closest('#user-lines'))) {
+        selected.clear();
+        selectedEndpoint = null;
+        editSection.style.display = 'none';
+        render();
+    }
+});
+
+render();
+
+// Keyboard: arrow keys move all selected (Shift = 25, normal = 5)
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+    // Cmd/Ctrl+A to select all
+    if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        e.preventDefault();
+        selectAll();
+        return;
+    }
+    // Cmd/Ctrl+Z undo, Cmd/Ctrl+Shift+Z redo
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo(); else undo();
+        return;
+    }
+
+    const step = e.shiftKey ? 10 : 1;
+    const arrows = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    const dir = arrows[e.key];
+    if (!dir) return;
+    e.preventDefault();
+
+    if (selectedEndpoint) {
+        const item = items.find(i => i.id === selectedEndpoint.id);
+        if (!item) return;
+        saveHistory();
+        if (selectedEndpoint.end === 'start') {
+            item.x1 += dir[0]; item.y1 += dir[1];
+        } else {
+            item.x2 += dir[0]; item.y2 += dir[1];
+        }
+        render();
+        showEdit();
+        return;
+    }
+
+    if (selected.size === 0) return;
+    saveHistory();
+    selected.forEach(id => {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        moveItem(item, dir[0], dir[1]);
+    });
+    render();
+    showEdit();
+});
+</script>
+</body>
+</html>

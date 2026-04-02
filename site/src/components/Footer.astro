@@ -1,5 +1,6 @@
 ---
 import { client } from '../lib/sanity';
+import Logo from './Logo.astro';
 
 const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText, contactEmail, instagramUrl }');
 ---
@@ -14,6 +15,6 @@ const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText, 
         </div>
     </div>
 </footer>
-<a href="/" class="mobile-logo">
-    <img src="/logo_black.svg" alt="Rosa Logo">
-</a>
+<div class="mobile-logo">
+    <Logo fixed={false} />
+</div>
