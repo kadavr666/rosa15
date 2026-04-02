@@ -22,10 +22,10 @@ const contactEmail = settings?.contactEmail || '';
 
         <!-- HOME zone: ПОЗА → HOME on hover -->
         <a href="/" class="home-zone">
-            <span class="logo-text home-letter" style="left:30px; top:30px; transform:translate(-50%, -50%);" data-default="P" data-hover="H">P</span>
-            <span class="logo-text home-letter" style="left:90px; top:30px; transform:translate(-50%, -50%);" data-default="O" data-hover="O">O</span>
-            <span class="logo-text home-letter" style="left:30px; top:90px; transform:translate(-50%, -50%);" data-default="З" data-hover="M">З</span>
-            <span class="logo-text home-letter" style="left:90px; top:90px; transform:translate(-50%, -50%);" data-default="A" data-hover="E">A</span>
+            <span class="logo-text home-letter" style="left:30px; top:30px; transform:translate(-50%, -50%);" data-orig="P" data-hover="H">P</span>
+            <span class="logo-text home-letter" style="left:90px; top:30px; transform:translate(-50%, -50%);" data-orig="O" data-hover="O">O</span>
+            <span class="logo-text home-letter" style="left:30px; top:90px; transform:translate(-50%, -50%);" data-orig="З" data-hover="M">З</span>
+            <span class="logo-text home-letter" style="left:90px; top:90px; transform:translate(-50%, -50%);" data-orig="A" data-hover="E">A</span>
         </a>
 
         <!-- @ contact button -->
@@ -167,14 +167,13 @@ const contactEmail = settings?.contactEmail || '';
 </style>
 
 <script>
-    const homeZone = document.querySelector('.home-zone');
-    if (homeZone) {
-        const letters = homeZone.querySelectorAll('.home-letter');
-        homeZone.addEventListener('mouseenter', () => {
-            letters.forEach(el => { el.textContent = el.dataset.hover!; });
+    document.querySelectorAll('.home-zone').forEach(zone => {
+        const letters = zone.querySelectorAll('.home-letter');
+        zone.addEventListener('mouseenter', () => {
+            letters.forEach(el => { (el as HTMLElement).textContent = (el as HTMLElement).dataset.hover || ''; });
         });
-        homeZone.addEventListener('mouseleave', () => {
-            letters.forEach(el => { el.textContent = el.dataset.default!; });
+        zone.addEventListener('mouseleave', () => {
+            letters.forEach(el => { (el as HTMLElement).textContent = (el as HTMLElement).dataset.orig || ''; });
         });
-    }
+    });
 </script>
