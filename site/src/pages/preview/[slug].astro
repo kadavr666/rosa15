@@ -10,7 +10,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 const data = await client.fetch(
-    '*[_type == "preview" && slug.current == $slug][0]{ artist, albumTitle, label, format, releaseDate, catalogueNo, description, artwork, tracks[] { title, audioFile { asset->{ _ref } } } }',
+    '*[_type == "preview" && slug.current == $slug][0]{ artist, albumTitle, label, format, releaseDate, catalogueNo, description, "artworkRef": artwork.asset->_id, tracks[] { title, audioFile { asset->{ _id } } } }',
     { slug }
 );
 
@@ -19,10 +19,10 @@ if (!data) return Astro.redirect('/');
 const tracks = (data.tracks || []).map((t: any, i: number) => ({
     id: i + 1,
     title: t.title || `Track ${String(i + 1).padStart(2, '0')}`,
-    file: t.audioFile?.asset?._ref ? sanityFileUrl(t.audioFile.asset._ref) : '',
+    file: t.audioFile?.asset?._id ? sanityFileUrl(t.audioFile.asset._id) : '',
 }));
 
-const artworkUrl = data.artwork?.asset?._ref ? sanityImageUrl(data.artwork.asset._ref) : '';
+const artworkUrl = data.artworkRef ? sanityImageUrl(data.artworkRef) : '';
 ---
 <Base title="Rosa 15">
     <div class="player-page">
