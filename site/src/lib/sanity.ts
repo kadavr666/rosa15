@@ -4,7 +4,7 @@ export const client = createClient({
   projectId: 'hp2p0iij',
   dataset: 'production',
   apiVersion: '2024-01-01',
-  useCdn: true,
+  useCdn: false,
 });
 
 export function sanityImageUrl(ref: string): string {

@@ -5,7 +5,7 @@ import { client, sanityImageUrl } from '../lib/sanity';
 
 const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slug, heroImage, heroImageHover } | order(_createdAt desc)');
 ---
-<Base title="Rosa 15">
+<Base title="Rosa 15" noScroll={true}>
     <div class={`projects-grid${projects?.length === 1 ? ' single-project' : ''}`}>
         {projects?.map((p: any, i: number) => {
             const front = p.heroImage ? sanityImageUrl(p.heroImage.asset._ref) : '';
@@ -31,12 +31,13 @@ const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slu
 <style>
     .projects-grid {
         display: flex;
+        flex: 1;
         gap: 20px;
         overflow-x: auto;
+        overflow-y: hidden;
         padding: 20px;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
-        min-height: 60vh;
     }
     .projects-grid.single-project {
         justify-content: center;
@@ -48,14 +49,17 @@ const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slu
     .project-card {
         flex: 0 0 auto;
         width: 40vw;
+        height: 100%;
         scroll-snap-align: start;
         text-decoration: none;
         color: #000;
         perspective: 1500px;
+        display: flex;
+        flex-direction: column;
     }
     .card-flip {
         position: relative;
-        height: 55vh;
+        height: 100%;
         transform-style: preserve-3d;
     }
     .card-face {
