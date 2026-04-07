@@ -62,6 +62,18 @@ main {
     to { transform: rotateY(360deg); }
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .hero-card,
+    .hero-face,
+    .hero-face img {
+        cursor: grab;
+    }
+    body.is-dragging,
+    body.is-dragging * {
+        cursor: grabbing !important;
+    }
+}
+
 /* ── Sections ── */
 
 #sections > .text-section,

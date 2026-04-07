@@ -62,3 +62,92 @@ const title = project?.title || 'Project';
 
     <Footer />
 </Base>
+
+<script>
+(function () {
+    const card = document.querySelector('.hero-card') as HTMLElement | null;
+    if (!card) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    const DURATION = 16;
+    const FRICTION = 0.95;
+    const VELOCITY_THRESHOLD = 0.05;
+    const AUTO_RESUME_DELAY = 10000;
+
+    let isDragging = false;
+    let dragStartX = 0;
+    let angleAtDragStart = 0;
+    let currentAngle = 0;
+    let velocity = 0;
+    let lastX = 0;
+    let momentumRAF: number | null = null;
+    let autoResumeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    function getAngleFromMatrix(): number {
+        const t = window.getComputedStyle(card!).transform;
+        if (!t || t === 'none') return 0;
+        const m = new DOMMatrix(t);
+        return Math.atan2(m.m31, m.m11) * (180 / Math.PI);
+    }
+
+    function resumeFrom(angle: number) {
+        const normalized = ((angle % 360) + 360) % 360;
+        const delay = -((normalized / 360) * DURATION);
+        card!.style.animation = 'none';
+        card!.offsetHeight;
+        card!.style.transform = '';
+        card!.style.animation = `hero-spin ${DURATION}s ${delay}s linear infinite`;
+    }
+
+    function cancelPending() {
+        if (momentumRAF !== null) { cancelAnimationFrame(momentumRAF); momentumRAF = null; }
+        if (autoResumeTimeout !== null) { clearTimeout(autoResumeTimeout); autoResumeTimeout = null; }
+    }
+
+    card.addEventListener('mousedown', (e: MouseEvent) => {
+        cancelPending();
+        isDragging = true;
+        dragStartX = e.clientX;
+        lastX = e.clientX;
+        velocity = 0;
+        angleAtDragStart = getAngleFromMatrix();
+        currentAngle = angleAtDragStart;
+        card!.style.animation = 'none';
+        card!.style.transform = `rotateY(${angleAtDragStart}deg)`;
+        document.body.classList.add('is-dragging');
+        document.documentElement.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e: MouseEvent) => {
+        if (!isDragging) return;
+        velocity = e.clientX - lastX;
+        lastX = e.clientX;
+        currentAngle = angleAtDragStart + (e.clientX - dragStartX) * 0.5;
+        card!.style.transform = `rotateY(${currentAngle}deg)`;
+    });
+
+    window.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        document.body.classList.remove('is-dragging');
+        document.documentElement.style.userSelect = '';
+
+        let vel = velocity * 0.8;
+
+        function momentumStep() {
+            vel *= FRICTION;
+            currentAngle += vel;
+            card!.style.transform = `rotateY(${currentAngle}deg)`;
+            if (Math.abs(vel) > VELOCITY_THRESHOLD) {
+                momentumRAF = requestAnimationFrame(momentumStep);
+            } else {
+                momentumRAF = null;
+                autoResumeTimeout = setTimeout(() => resumeFrom(currentAngle), AUTO_RESUME_DELAY);
+            }
+        }
+
+        momentumRAF = requestAnimationFrame(momentumStep);
+    });
+})();
+</script>
