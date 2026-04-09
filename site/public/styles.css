@@ -131,6 +131,7 @@ main.no-scroll {
 .splash-form button {
     font-family: inherit;
     font-size: 22px;
+    font-weight: normal;
     background: none;
     border: 1px solid #000;
     border-left: none;
