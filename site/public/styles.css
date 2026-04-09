@@ -143,6 +143,20 @@ main.no-scroll {
     text-decoration: underline;
 }
 
+@media (max-width: 768px) {
+    .splash-form {
+        flex-direction: column;
+        width: 100%;
+    }
+    .splash-form input[type="email"] {
+        width: 100%;
+    }
+    .splash-form button {
+        border-left: 1px solid #000;
+        border-top: none;
+    }
+}
+
 .splash-footer {
     font-size: 22px;
     letter-spacing: 0.05em;
