@@ -147,13 +147,19 @@ main.no-scroll {
     .splash-form {
         flex-direction: column;
         width: 100%;
+        gap: 10px;
     }
     .splash-form input[type="email"] {
         width: 100%;
+        border-radius: 0;
+        -webkit-appearance: none;
     }
     .splash-form button {
         border-left: 1px solid #000;
-        border-top: none;
+        border-radius: 0;
+        -webkit-appearance: none;
+        color: #000;
+        width: 100%;
     }
 }
 
