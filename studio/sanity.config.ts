@@ -6,22 +6,36 @@ import {schemaTypes} from './schemaTypes'
 export default defineConfig({
   name: 'default',
   title: 'rosa15',
+  basePath: '/studio',
 
   projectId: 'hp2p0iij',
   dataset: 'production',
 
-  plugins: [structureTool(), visionTool()],
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title('Content')
+          .items([
+            S.listItem()
+              .title('List of Supporters')
+              .child(
+                S.document()
+                  .title('List of Supporters')
+                  .schemaType('supporters')
+                  .documentId('supporters')
+              ),
+            S.divider(),
+            ...S.documentTypeListItems().filter(
+              (item) => item.getId() !== 'supporters'
+            ),
+          ]),
+    }),
+    visionTool(),
+  ],
 
   schema: {
     types: schemaTypes,
   },
 
-  document: {
-    actions: (prev, context) => {
-      if (context.schemaType === 'project') {
-        return [...prev]
-      }
-      return prev
-    },
-  },
 })

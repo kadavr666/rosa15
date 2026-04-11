@@ -9,6 +9,7 @@ const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText, 
         <div class="footer-links">
             {settings?.contactEmail && <a href={`mailto:${settings.contactEmail}`}>Contact</a>}
             {settings?.instagramUrl && <a href={settings.instagramUrl} target="_blank">Instagram</a>}
+            <a href="https://rosa15.us13.list-manage.com/subscribe?u=1ffc9ac952ede46669a7c83f7&id=5de29c5ef2" target="_blank">Subscribe</a>
         </div>
         <div class="footer-text">
             {settings?.footerText && <p>{settings.footerText}</p>}

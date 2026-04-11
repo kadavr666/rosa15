@@ -10,7 +10,8 @@
             font-family: 'Helvetica Neue', sans-serif;
             background: #f5f5f5;
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* ── Canvas ── */
@@ -169,21 +170,10 @@
         <button onclick="setZoom(1000)">1000%</button>
     </div>
     <svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 340 310" width="340" height="310">
-        <!-- Grid: 1 unit = 1 pixel. Container is 300×270. -->
-        <defs>
-            <pattern id="grid-sm" width="2.5" height="2.5" patternUnits="userSpaceOnUse">
-                <path d="M 2.5 0 L 0 0 0 2.5" fill="none" stroke="rgba(0,100,255,0.08)" stroke-width="0.5"/>
-            </pattern>
-            <pattern id="grid-md" width="30" height="30" patternUnits="userSpaceOnUse">
-                <rect width="30" height="30" fill="url(#grid-sm)"/>
-                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(0,100,255,0.15)" stroke-width="0.5"/>
-            </pattern>
-            <pattern id="grid-lg" width="60" height="60" patternUnits="userSpaceOnUse">
-                <rect width="60" height="60" fill="url(#grid-md)"/>
-                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,100,255,0.25)" stroke-width="0.5"/>
-            </pattern>
-        </defs>
-        <rect x="0" y="0" width="300" height="270" fill="url(#grid-lg)" stroke="rgba(0,100,255,0.4)" stroke-width="0.5"/>
+        <!-- Border -->
+        <rect x="0" y="0" width="300" height="270" fill="none" stroke="rgba(0,100,255,0.4)" stroke-width="0.5"/>
+        <!-- Dynamic grid -->
+        <g id="grid-layer"></g>
 
         <!-- Coordinate labels -->
         <g id="coord-labels" fill="rgba(0,100,255,0.4)" font-size="8" font-family="Helvetica, sans-serif">
@@ -199,6 +189,9 @@
             <text x="-4" y="240" text-anchor="end">240</text>
             <text x="-4" y="270" text-anchor="end">270</text>
         </g>
+
+        <!-- Logo reference (actual SVG, semi-transparent) -->
+        <image href="/logo_lines.svg" x="-1" y="-1" width="182" height="243" opacity="0.2" style="pointer-events:none"/>
 
         <!-- User elements: text behind, lines on top -->
         <g id="user-texts"></g>
@@ -232,18 +225,38 @@
     </div>
 
     <hr>
+    <h3>Grid subdivision</h3>
+    <label style="display:flex;align-items:center;gap:8px;">
+        Snap
+        <select id="snap-select" style="padding:4px 6px;border:1px solid #ccc;border-radius:3px;font-size:13px;" onchange="setSnap(+this.value)">
+            <option value="1">1 px</option>
+            <option value="2.5">2.5 px</option>
+            <option value="5">5 px</option>
+            <option value="10">10 px</option>
+            <option value="30" selected>30 px</option>
+            <option value="60">60 px</option>
+        </select>
+    </label>
+
+    <hr>
     <h3>Mouse position</h3>
     <div id="mouse-pos" style="font-family:monospace; color:#666;">x: — y: —</div>
 
     <hr>
-    <h3>Save / Load</h3>
-    <button class="primary" onclick="saveToStorage()">Save</button>
-    <button onclick="loadFromStorage()">Load</button>
+    <h3>Drawings</h3>
+    <button class="primary" onclick="newDrawing()">New</button>
+    <button onclick="saveDrawing()">Save</button>
+    <button onclick="saveAsDrawing()">Save as…</button>
+    <button class="danger" onclick="deleteDrawing()">Delete</button>
+    <div style="margin-top:8px;">
+        <select id="drawing-select" style="width:100%;padding:4px 6px;border:1px solid #ccc;border-radius:3px;font-size:13px;" onchange="switchDrawing(this.value)"></select>
+    </div>
     <div id="save-status" style="color:#888;font-size:11px;margin-top:4px;"></div>
 
     <hr>
-    <h3>Export SVG code</h3>
+    <h3>Export</h3>
     <button onclick="exportCode()">Copy elements</button>
+    <button class="primary" onclick="downloadSVG()">Download SVG</button>
     <textarea id="export-output" readonly></textarea>
 </div>
 
@@ -262,7 +275,7 @@ const editSection = document.getElementById('edit-section');
 const editFields = document.getElementById('edit-fields');
 const mousePos = document.getElementById('mouse-pos');
 
-let items = [
+const DEFAULT_ITEMS = [
     { id: 1, type: 'line', x1: 0, y1: 123, x2: 0, y2: 237, strokeWidth: 1 },
     { id: 2, type: 'line', x1: 120, y1: 123, x2: 120, y2: 237, strokeWidth: 1 },
     { id: 3, type: 'line', x1: 3, y1: 120, x2: 117, y2: 120, strokeWidth: 1 },
@@ -284,8 +297,46 @@ let items = [
     { id: 19, type: 'text', x: 120, y: 240, w: 120, h: 30, text: 'Kropotkin', fontSize: 22, fontFamily: "'Times New Roman', serif", textAlign: 'left' },
     { id: 20, type: 'text', x: 120, y: 120, w: 60, h: 60, text: '@', fontSize: 22, fontFamily: "'Times New Roman', serif" },
 ];
+let items = [];
 let selected = new Set();
 let nextId = 21;
+let snapSize = 30;
+let clipboard = [];
+
+function setSnap(v) {
+    snapSize = v;
+    renderGrid();
+}
+
+function snap(v) {
+    return Math.round(v / snapSize) * snapSize;
+}
+
+function renderGrid() {
+    const layer = document.getElementById('grid-layer');
+    layer.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    const majorEvery = 60; // always show a heavier line at 60px intervals
+    for (let x = 0; x <= 300; x += snapSize) {
+        const isMajor = x % majorEvery === 0;
+        const l = document.createElementNS(ns, 'line');
+        l.setAttribute('x1', x); l.setAttribute('y1', 0);
+        l.setAttribute('x2', x); l.setAttribute('y2', 270);
+        l.setAttribute('stroke', isMajor ? 'rgba(0,100,255,0.25)' : 'rgba(0,100,255,0.1)');
+        l.setAttribute('stroke-width', 0.5);
+        layer.appendChild(l);
+    }
+    for (let y = 0; y <= 270; y += snapSize) {
+        const isMajor = y % majorEvery === 0;
+        const l = document.createElementNS(ns, 'line');
+        l.setAttribute('x1', 0); l.setAttribute('y1', y);
+        l.setAttribute('x2', 300); l.setAttribute('y2', y);
+        l.setAttribute('stroke', isMajor ? 'rgba(0,100,255,0.25)' : 'rgba(0,100,255,0.1)');
+        l.setAttribute('stroke-width', 0.5);
+        layer.appendChild(l);
+    }
+}
+
 let dragging = null;
 let draggingEndpoint = null;
 let selectedEndpoint = null; // { id, end: 'start'|'end' }
@@ -359,8 +410,8 @@ svg.addEventListener('mousemove', (e) => {
     if (draggingEndpoint) {
         const item = items.find(i => i.id === draggingEndpoint.id);
         if (!item) return;
-        const sx = Math.round(p.x / 1) * 1;
-        const sy = Math.round(p.y / 1) * 1;
+        const sx = snap(p.x);
+        const sy = snap(p.y);
         if (draggingEndpoint.end === 'start') {
             item.x1 = sx; item.y1 = sy;
         } else {
@@ -372,8 +423,8 @@ svg.addEventListener('mousemove', (e) => {
     }
 
     if (dragging) {
-        const snappedX = Math.round((p.x - dragOffset.x) / 1) * 1;
-        const snappedY = Math.round((p.y - dragOffset.y) / 1) * 1;
+        const snappedX = snap(p.x - dragOffset.x);
+        const snappedY = snap(p.y - dragOffset.y);
         const anchor = dragStartPositions[dragging];
         if (!anchor) return;
         const dx = snappedX - anchor.x;
@@ -731,9 +782,6 @@ function duplicateSelected() {
         if (!item) return;
         const newId = nextId++;
         const copy = { ...item, id: newId };
-        if (copy.type === 'text') { copy.x += 10; copy.y += 10; }
-        else if (copy.type === 'circle') { copy.cx += 10; copy.cy += 10; }
-        else { copy.x1 += 10; copy.y1 += 10; copy.x2 += 10; copy.y2 += 10; }
         items.push(copy);
         newSelected.add(newId);
     });
@@ -752,41 +800,182 @@ function deleteSelected() {
 
 function exportCode() {
     const out = document.getElementById('export-output');
-    let code = '';
-    items.forEach(item => {
-        if (item.type === 'circle') {
-            code += `<circle cx="${item.cx}" cy="${item.cy}" r="${item.r}" fill="${item.fill||'none'}" stroke="#000" stroke-width="${item.strokeWidth}"/>\n`;
-        } else if (item.type === 'text') {
-            const align = item.textAlign || 'center';
-            const anchorMap = { left: 'start', center: 'middle', right: 'end' };
-            const xMap = { left: item.x, center: item.x + item.w/2, right: item.x + item.w };
-            code += `<!-- box: x=${item.x} y=${item.y} w=${item.w} h=${item.h} align=${align} -->\n`;
-            code += `<text x="${xMap[align]}" y="${item.y + item.h/2}" font-family="${item.fontFamily}" font-size="${item.fontSize}" fill="#000" text-anchor="${anchorMap[align]}" dominant-baseline="central">${item.text}</text>\n`;
-        } else {
-            code += `<line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="#000" stroke-width="${item.strokeWidth}"/>\n`;
-        }
-    });
+    const code = buildSVGElements();
     out.value = code;
     out.select();
     navigator.clipboard.writeText(code).catch(() => {});
 }
 
-function saveToStorage() {
-    localStorage.setItem('logo-lab-items', JSON.stringify(items));
-    document.getElementById('save-status').textContent = 'Saved ' + new Date().toLocaleTimeString();
+function getBoundingBox() {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    items.forEach(item => {
+        if (item.type === 'line') {
+            minX = Math.min(minX, item.x1, item.x2);
+            minY = Math.min(minY, item.y1, item.y2);
+            maxX = Math.max(maxX, item.x1, item.x2);
+            maxY = Math.max(maxY, item.y1, item.y2);
+        } else if (item.type === 'circle') {
+            minX = Math.min(minX, item.cx - item.r);
+            minY = Math.min(minY, item.cy - item.r);
+            maxX = Math.max(maxX, item.cx + item.r);
+            maxY = Math.max(maxY, item.cy + item.r);
+        } else if (item.type === 'text') {
+            minX = Math.min(minX, item.x);
+            minY = Math.min(minY, item.y);
+            maxX = Math.max(maxX, item.x + item.w);
+            maxY = Math.max(maxY, item.y + item.h);
+        }
+    });
+    return { minX, minY, maxX, maxY, w: maxX - minX, h: maxY - minY };
 }
 
-function loadFromStorage() {
-    const data = localStorage.getItem('logo-lab-items');
-    if (!data) { document.getElementById('save-status').textContent = 'No saved data'; return; }
-    saveHistory();
-    items = JSON.parse(data);
-    nextId = Math.max(...items.map(i => i.id)) + 1;
+function buildSVGElements() {
+    let code = '';
+    items.forEach(item => {
+        if (item.type === 'circle') {
+            code += `  <circle cx="${item.cx}" cy="${item.cy}" r="${item.r}" fill="${item.fill||'none'}" stroke="#000" stroke-width="${item.strokeWidth}"/>\n`;
+        } else if (item.type === 'text') {
+            const align = item.textAlign || 'center';
+            const anchorMap = { left: 'start', center: 'middle', right: 'end' };
+            const xMap = { left: item.x, center: item.x + item.w/2, right: item.x + item.w };
+            code += `  <text x="${xMap[align]}" y="${item.y + item.h/2}" font-family="${item.fontFamily}" font-size="${item.fontSize}" fill="#000" text-anchor="${anchorMap[align]}" dominant-baseline="central">${item.text}</text>\n`;
+        } else {
+            code += `  <line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="#000" stroke-width="${item.strokeWidth}"/>\n`;
+        }
+    });
+    return code;
+}
+
+function downloadSVG() {
+    if (!items.length) return;
+    const pad = 2;
+    const { minX, minY, w, h } = getBoundingBox();
+    const vx = minX - pad, vy = minY - pad, vw = w + pad * 2, vh = h + pad * 2;
+    const name = currentDrawingName || 'drawing';
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${vy} ${vw} ${vh}" width="${vw}" height="${vh}">\n${buildSVGElements()}</svg>`;
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${name}.svg`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ── Named drawings ──
+const STORE_KEY = 'logo-lab-drawings';
+const CURRENT_KEY = 'logo-lab-current';
+let currentDrawingName = '';
+
+function getDrawings() {
+    return JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+}
+
+function setDrawings(obj) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+}
+
+function setStatus(msg) {
+    document.getElementById('save-status').textContent = msg;
+}
+
+function refreshSelect(selectName) {
+    const sel = document.getElementById('drawing-select');
+    const drawings = getDrawings();
+    const names = Object.keys(drawings).sort();
+    sel.innerHTML = names.length
+        ? names.map(n => `<option value="${n}" ${n === (selectName || currentDrawingName) ? 'selected' : ''}>${n}</option>`).join('')
+        : '<option value="" disabled>No saved drawings</option>';
+}
+
+function newDrawing() {
+    const name = prompt('Drawing name:', 'Untitled');
+    if (!name) return;
+    const drawings = getDrawings();
+    if (drawings[name] && !confirm(`"${name}" already exists. Overwrite?`)) return;
+    items = [];
+    nextId = 1;
     selected.clear();
+    currentDrawingName = name;
+    drawings[name] = { items: [], nextId: 1 };
+    setDrawings(drawings);
+    localStorage.setItem(CURRENT_KEY, name);
+    refreshSelect(name);
     editSection.style.display = 'none';
     render();
-    document.getElementById('save-status').textContent = 'Loaded';
+    setStatus(`New drawing: "${name}"`);
 }
+
+function saveDrawing() {
+    if (!currentDrawingName) { saveAsDrawing(); return; }
+    const drawings = getDrawings();
+    drawings[currentDrawingName] = { items, nextId };
+    setDrawings(drawings);
+    localStorage.setItem(CURRENT_KEY, currentDrawingName);
+    setStatus('Saved "' + currentDrawingName + '" ' + new Date().toLocaleTimeString());
+}
+
+function saveAsDrawing() {
+    const name = prompt('Save as:', currentDrawingName || 'Untitled');
+    if (!name) return;
+    const drawings = getDrawings();
+    if (drawings[name] && name !== currentDrawingName && !confirm(`"${name}" already exists. Overwrite?`)) return;
+    currentDrawingName = name;
+    drawings[name] = { items, nextId };
+    setDrawings(drawings);
+    localStorage.setItem(CURRENT_KEY, name);
+    refreshSelect(name);
+    setStatus('Saved as "' + name + '"');
+}
+
+function switchDrawing(name) {
+    if (!name) return;
+    const drawings = getDrawings();
+    if (!drawings[name]) return;
+    const d = drawings[name];
+    items = d.items || [];
+    nextId = d.nextId || (items.length ? Math.max(...items.map(i => i.id)) + 1 : 1);
+    selected.clear();
+    currentDrawingName = name;
+    localStorage.setItem(CURRENT_KEY, name);
+    editSection.style.display = 'none';
+    render();
+    setStatus('Loaded "' + name + '"');
+}
+
+function deleteDrawing() {
+    if (!currentDrawingName) return;
+    if (!confirm(`Delete "${currentDrawingName}"?`)) return;
+    const drawings = getDrawings();
+    delete drawings[currentDrawingName];
+    setDrawings(drawings);
+    currentDrawingName = '';
+    localStorage.removeItem(CURRENT_KEY);
+    refreshSelect('');
+    setStatus('Deleted');
+}
+
+// Restore last open drawing on load; seed default logo if nothing saved yet
+(function init() {
+    const drawings = getDrawings();
+
+    // Seed the default logo drawing on first ever open
+    if (!drawings['Logo']) {
+        drawings['Logo'] = { items: DEFAULT_ITEMS, nextId: 21 };
+        setDrawings(drawings);
+    }
+
+    const last = localStorage.getItem(CURRENT_KEY) || 'Logo';
+    if (drawings[last]) {
+        const d = drawings[last];
+        items = JSON.parse(JSON.stringify(d.items || []));
+        nextId = d.nextId || (items.length ? Math.max(...items.map(i => i.id)) + 1 : 1);
+        currentDrawingName = last;
+        setStatus('Opened "' + last + '"');
+    }
+    refreshSelect(currentDrawingName);
+    renderGrid();
+    render();
+})();
 
 // Click on canvas background to deselect
 svg.addEventListener('click', (e) => {
@@ -798,12 +987,32 @@ svg.addEventListener('click', (e) => {
     }
 });
 
-render();
-
 // Keyboard: arrow keys move all selected (Shift = 25, normal = 5)
 document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
+    // Cmd/Ctrl+C copy, Cmd/Ctrl+V paste
+    if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+        e.preventDefault();
+        clipboard = items.filter(i => selected.has(i.id)).map(i => JSON.parse(JSON.stringify(i)));
+        return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+        e.preventDefault();
+        if (!clipboard.length) return;
+        saveHistory();
+        const newSelected = new Set();
+        clipboard.forEach(item => {
+            const newId = nextId++;
+            const copy = { ...JSON.parse(JSON.stringify(item)), id: newId };
+            items.push(copy);
+            newSelected.add(newId);
+        });
+        selected = newSelected;
+        render();
+        showEdit();
+        return;
+    }
     // Cmd/Ctrl+A to select all
     if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
         e.preventDefault();
@@ -816,8 +1025,14 @@ document.addEventListener('keydown', (e) => {
         if (e.shiftKey) redo(); else undo();
         return;
     }
+    // Backspace / Delete to remove selected
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        deleteSelected();
+        return;
+    }
 
-    const step = e.shiftKey ? 10 : 1;
+    const step = e.shiftKey ? snapSize * 2 : snapSize;
     const arrows = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
     const dir = arrows[e.key];
     if (!dir) return;

@@ -219,6 +219,12 @@ main.no-scroll {
     margin-bottom: 0;
 }
 
+.text-section a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .title {
     text-align: center;
     letter-spacing: 0.1em;
@@ -272,6 +278,23 @@ main.no-scroll {
     line-height: 1.3;
     letter-spacing: 0.05em;
     padding-left: 1.5em;
+}
+
+/* ── Project supporters ── */
+
+.project-supporters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0;
+    border-top: 1px solid #000;
+    margin-top: 80px;
+    padding-bottom: 60px;
+}
+
+.project-supporters > .title {
+    flex-basis: 100%;
+    padding: 1em 0;
 }
 
 /* ── Footer ── */
@@ -333,6 +356,31 @@ main.no-scroll {
 .footer-text p {
     font-size: 22px;
     letter-spacing: 0.05em;
+}
+
+/* ── Supporter logo ── */
+
+.supporter-logo {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    mix-blend-mode: exclusion;
+    filter: invert(1);
+    text-decoration: none;
+}
+
+.supporter-logo img {
+    display: block;
+    width: 184px;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .supporter-logo {
+        display: none;
+    }
 }
 
 /* ── Mobile Logo ── */
@@ -425,6 +473,10 @@ main.no-scroll {
 
     .fixed-logo {
         display: none;
+    }
+
+    .project-supporters svg text {
+        font-size: 14px;
     }
 
     #footer {

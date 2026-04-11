@@ -1,4 +1,5 @@
 import {defineType, defineField, defineArrayMember} from 'sanity'
+import {BatchInput} from '../components/BatchInput'
 
 export const project = defineType({
   name: 'project',
@@ -43,7 +44,35 @@ export const project = defineType({
           fields: [
             defineField({name: 'title', title: 'Title', type: 'string'}),
             defineField({name: 'subtitle', title: 'Subtitle', type: 'string'}),
-            defineField({name: 'body', title: 'Body', type: 'text'}),
+            defineField({
+              name: 'body',
+              title: 'Body',
+              type: 'array',
+              of: [
+                defineArrayMember({
+                  type: 'block',
+                  styles: [{title: 'Normal', value: 'normal'}],
+                  lists: [],
+                  marks: {
+                    decorators: [
+                      {title: 'Strong', value: 'strong'},
+                      {title: 'Emphasis', value: 'em'},
+                    ],
+                    annotations: [
+                      defineArrayMember({
+                        name: 'link',
+                        type: 'object',
+                        title: 'Link',
+                        fields: [
+                          defineField({name: 'href', type: 'url', title: 'URL', validation: Rule => Rule.uri({ allowRelative: true })}),
+                          defineField({name: 'blank', type: 'boolean', title: 'Open in new tab', initialValue: true}),
+                        ],
+                      }),
+                    ],
+                  },
+                }),
+              ],
+            }),
           ],
           preview: {
             select: {title: 'title', subtitle: 'subtitle'},
@@ -80,6 +109,66 @@ export const project = defineType({
           },
         }),
       ],
+    }),
+    defineField({
+      name: 'supporters',
+      title: 'Supporters',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'supporterItem',
+          fields: [
+            defineField({ name: 'name', title: 'Name', type: 'string' }),
+          ],
+          preview: { select: { title: 'name' } },
+        }),
+      ],
+    }),
+    defineField({
+      name: 'supportersBatch',
+      title: 'Batch add supporters',
+      type: 'string',
+      components: { input: BatchInput },
+    }),
+  ],
+})
+
+export const supporters = defineType({
+  name: 'supporters',
+  title: 'List of Supporters',
+  type: 'document',
+  initialValue: {
+    title: 'List of Supporters',
+  },
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+      hidden: true,
+      readOnly: true,
+    }),
+    defineField({
+      name: 'items',
+      title: 'Supporters',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'supporterItem',
+          fields: [
+            defineField({ name: 'name', title: 'Name', type: 'string' }),
+          ],
+          preview: { select: { title: 'name' } },
+        }),
+      ],
+    }),
+    defineField({
+      name: 'batchInput',
+      title: 'Batch add names',
+      type: 'string',
+      components: { input: BatchInput },
     }),
   ],
 })

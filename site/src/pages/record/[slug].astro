@@ -1,0 +1,85 @@
+---
+import { client, sanityImageUrl } from '../../lib/sanity';
+
+export async function getStaticPaths() {
+    const projects = await client.fetch('*[_type == "project"]{ slug }');
+    return projects
+        .filter((p: any) => p.slug?.current)
+        .map((p: any) => ({ params: { slug: p.slug.current } }));
+}
+
+const { slug } = Astro.params;
+const project = await client.fetch(
+    '*[_type == "project" && slug.current == $slug][0]{ title, heroImage, heroImageHover }',
+    { slug }
+);
+
+const frontSrc = project?.heroImage ? sanityImageUrl(project.heroImage.asset._ref) : '/hero.jpg';
+const backSrc = project?.heroImageHover ? sanityImageUrl(project.heroImageHover.asset._ref) : '/hero2.jpg';
+---
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{project?.title}</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .hero-container {
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+        }
+
+        .hero-card {
+            position: relative;
+            height: 70vh;
+            transform-style: preserve-3d;
+            animation: hero-spin 16s linear infinite;
+        }
+
+        .hero-front,
+        .hero-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .hero-front img,
+        .hero-back img {
+            height: 70vh;
+            width: auto;
+            display: block;
+        }
+
+        .hero-back {
+            position: absolute;
+            top: 0; left: 0;
+            transform: rotateY(180deg);
+        }
+
+        @keyframes hero-spin {
+            from { transform: rotateY(0deg); }
+            to   { transform: rotateY(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-container">
+        <div class="hero-card">
+            <div class="hero-front"><img src={frontSrc} alt={project?.title} /></div>
+            <div class="hero-back"><img src={backSrc} alt={project?.title} /></div>
+        </div>
+    </div>
+</body>
+</html>
