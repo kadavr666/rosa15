@@ -174,14 +174,12 @@ main.no-scroll {
 
 /* ── Sections ── */
 
-#sections > .text-section,
-#sections > .crowdfunding {
-    padding: 40px 20px;
+#sections > .section-wrap {
     position: relative;
+    padding: 40px 20px;
 }
 
-#sections > .text-section::before,
-#sections > .crowdfunding::before {
+#sections > .section-wrap::before {
     content: '';
     position: absolute;
     top: 0;
@@ -192,12 +190,16 @@ main.no-scroll {
     background: #000;
 }
 
-#sections > :first-child {
+#sections > .section-wrap:first-child {
     padding-top: 0;
 }
 
-#sections > :first-child::before {
+#sections > .section-wrap:first-child::before {
     display: none;
+}
+
+#sections > .section-wrap:last-child {
+    padding-bottom: 80px;
 }
 
 
@@ -288,7 +290,7 @@ main.no-scroll {
     justify-content: center;
     gap: 0;
     border-top: 1px solid #000;
-    margin-top: 80px;
+    margin-top: 0;
     padding-bottom: 60px;
 }
 

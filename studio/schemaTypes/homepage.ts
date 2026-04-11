@@ -44,6 +44,7 @@ export const project = defineType({
           fields: [
             defineField({name: 'title', title: 'Title', type: 'string'}),
             defineField({name: 'subtitle', title: 'Subtitle', type: 'string'}),
+            defineField({name: 'backgroundColor', title: 'Background Color', type: 'color'}),
             defineField({
               name: 'body',
               title: 'Body',
@@ -51,7 +52,12 @@ export const project = defineType({
               of: [
                 defineArrayMember({
                   type: 'block',
-                  styles: [{title: 'Normal', value: 'normal'}],
+                  styles: [
+                    {title: 'Normal', value: 'normal'},
+                    {title: 'Left', value: 'left'},
+                    {title: 'Center', value: 'center'},
+                    {title: 'Right', value: 'right'},
+                  ],
                   lists: [],
                   marks: {
                     decorators: [
@@ -84,6 +90,7 @@ export const project = defineType({
           type: 'object',
           fields: [
             defineField({name: 'title', title: 'Title', type: 'string'}),
+            defineField({name: 'backgroundColor', title: 'Background Color', type: 'color'}),
             defineField({name: 'description', title: 'Description', type: 'text'}),
             defineField({
               name: 'items',

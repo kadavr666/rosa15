@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 const project = await client.fetch(
-    '*[_type == "project" && slug.current == $slug][0]{ title, subtitle, heroImage, heroImageHover, sections, supporters }',
+    '*[_type == "project" && slug.current == $slug][0]{ title, subtitle, heroImage, heroImageHover, sections[]{ ..., backgroundColor }, supporters }',
     { slug }
 );
 
@@ -32,42 +32,56 @@ const title = project?.title || 'Project';
 
     <div id="sections">
         {project?.sections?.map((section: any) => {
+            const bgStyle = (c: any) => c?.rgb
+                ? `background-color: rgba(${c.rgb.r},${c.rgb.g},${c.rgb.b},${c.alpha ?? 1})`
+                : '';
+
             if (section._type === 'textSection') {
                 return (
-                    <div class="text-section">
-                        {(section.title || section.subtitle) && (
-                            <div class="title">
-                                {section.subtitle && <>{section.subtitle}<br /></>}
-                                {section.title}
-                            </div>
-                        )}
-                        {section.body && (
-                            Array.isArray(section.body)
-                                ? <Fragment set:html={toHTML(section.body, {
-                                    components: {
-                                        marks: {
-                                            link: ({ children, value }: any) =>
-                                                `<a href="${value.href}"${value.blank ? ' target="_blank" rel="noopener"' : ''}>${children}</a>`,
+                    <div class="section-wrap" style={bgStyle(section.backgroundColor)}>
+                        <div class="text-section">
+                            {(section.title || section.subtitle) && (
+                                <div class="title">
+                                    {section.subtitle && <>{section.subtitle}<br /></>}
+                                    {section.title}
+                                </div>
+                            )}
+                            {section.body && (
+                                Array.isArray(section.body)
+                                    ? <Fragment set:html={toHTML(section.body, {
+                                        components: {
+                                            block: {
+                                                normal: ({ children }: any) => `<p>${children}</p>`,
+                                                left:   ({ children }: any) => `<p style="text-align:left">${children}</p>`,
+                                                center: ({ children }: any) => `<p style="text-align:center">${children}</p>`,
+                                                right:  ({ children }: any) => `<p style="text-align:right">${children}</p>`,
+                                            },
+                                            marks: {
+                                                link: ({ children, value }: any) =>
+                                                    `<a href="${value.href}"${value.blank ? ' target="_blank" rel="noopener"' : ''}>${children}</a>`,
+                                            },
                                         },
-                                    },
-                                })} />
-                                : <p>{section.body}</p>
-                        )}
+                                    })} />
+                                    : <p>{section.body}</p>
+                            )}
+                        </div>
                     </div>
                 );
             }
             if (section._type === 'listSection') {
                 return (
-                    <section class="crowdfunding">
-                        {section.title && <div class="title">{section.title}</div>}
-                        {section.description && <p>{section.description}</p>}
-                        {section.items?.map((item: any) => (
-                            <div class="list-item" data-price={item.price || ''}>
-                                <div class="item-title">{item.title || ''}</div>
-                                <div class="item-desc">{item.description || ''}</div>
-                            </div>
-                        ))}
-                    </section>
+                    <div class="section-wrap" style={bgStyle(section.backgroundColor)}>
+                        <section class="crowdfunding">
+                            {section.title && <div class="title">{section.title}</div>}
+                            {section.description && <p>{section.description}</p>}
+                            {section.items?.map((item: any) => (
+                                <div class="list-item" data-price={item.price || ''}>
+                                    <div class="item-title">{item.title || ''}</div>
+                                    <div class="item-desc">{item.description || ''}</div>
+                                </div>
+                            ))}
+                        </section>
+                    </div>
                 );
             }
         })}
