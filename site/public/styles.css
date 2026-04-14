@@ -493,8 +493,7 @@ main.no-scroll {
         overflow-x: scroll;
         overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
-        scroll-behavior: auto;
-        will-change: scroll-position;
+        touch-action: pan-x;
     }
 
     .project-supporters svg {
