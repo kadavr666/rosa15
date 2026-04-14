@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 const project = await client.fetch(
-    '*[_type == "project" && slug.current == $slug][0]{ title, subtitle, heroImage, heroImageHover, sections[]{ ..., backgroundColor }, supporters }',
+    '*[_type == "project" && slug.current == $slug][0]{ title, subtitle, heroImage, heroImageHover, sections, supporters }',
     { slug }
 );
 
@@ -32,9 +32,14 @@ const title = project?.title || 'Project';
 
     <div id="sections">
         {project?.sections?.map((section: any) => {
-            const bgStyle = (c: any) => c?.rgb
-                ? `background-color: rgba(${c.rgb.r},${c.rgb.g},${c.rgb.b},${c.alpha ?? 1})`
-                : '';
+            const bgStyle = (c: any) => {
+                if (!c?.rgb) return '';
+                const { r, g, b } = c.rgb;
+                const col = `rgb(${r},${g},${b})`;
+                // diagonal checkerboard: 2 red pixels in 2×2 tile = 50% density
+                const pixel = `<svg xmlns='http://www.w3.org/2000/svg' width='2' height='2'><rect x='0' y='0' width='1' height='1' fill='%23ff0000'/><rect x='1' y='1' width='1' height='1' fill='%23ff0000'/></svg>`;
+                return `background-image: url("data:image/svg+xml,${pixel}"); background-size: 2px 2px; background-color: #fff; image-rendering: pixelated;`;
+            };
 
             if (section._type === 'textSection') {
                 return (
@@ -64,6 +69,18 @@ const title = project?.title || 'Project';
                                     })} />
                                     : <p>{section.body}</p>
                             )}
+                            {section.buttons?.length > 0 && (
+                                <p class="section-btns">
+                                    {section.buttons.map((btn: any) => (
+                                        <a
+                                            class="section-btn"
+                                            href={btn.href || undefined}
+                                            target={btn.blank ? '_blank' : undefined}
+                                            rel={btn.blank ? 'noopener' : undefined}
+                                        >{btn.label}</a>
+                                    ))}
+                                </p>
+                            )}
                         </div>
                     </div>
                 );
@@ -88,23 +105,27 @@ const title = project?.title || 'Project';
     </div>
 
     {project?.supporters?.length > 0 && (
-        <div class="project-supporters">
-            <div class="title">PEOPLE SUPPORTED ({project.supporters.length})</div>
-            {project.supporters.map((s: any) => (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="58 -2 184 285" width="184" height="285" shape-rendering="crispEdges">
-                    <circle cx="150" cy="40" r="40" fill="none" stroke="currentColor" stroke-width="1.3"/>
-                    <line x1="150" y1="90" x2="150" y2="170" stroke="currentColor" stroke-width="1.3"/>
-                    <line x1="145" y1="175" x2="90" y2="240" stroke="currentColor" stroke-width="1.3"/>
-                    <line x1="155" y1="175" x2="210" y2="240" stroke="currentColor" stroke-width="1.3"/>
-                    <line x1="145" y1="85" x2="60" y2="155" stroke="currentColor" stroke-width="1.3"/>
-                    <line x1="155" y1="85" x2="240" y2="155" stroke="currentColor" stroke-width="1.3"/>
-                    <text x="150" y="255" font-family="'Times New Roman', serif" font-size="16" letter-spacing="0.8" fill="currentColor" text-anchor="middle" dominant-baseline="central">{s.name}</text>
-                </svg>
-            ))}
+        <div class="supporters-section">
+            <div class="supporters-label">PEOPLE SUPPORTED ({project.supporters.length})</div>
+            <div class="project-supporters">
+                {project.supporters.map((s: any) => (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="58 -2 184 285" width="184" height="285" shape-rendering="crispEdges">
+                        <circle cx="150" cy="40" r="40" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                        <line x1="150" y1="90" x2="150" y2="170" stroke="currentColor" stroke-width="1.3"/>
+                        <line x1="145" y1="175" x2="90" y2="240" stroke="currentColor" stroke-width="1.3"/>
+                        <line x1="155" y1="175" x2="210" y2="240" stroke="currentColor" stroke-width="1.3"/>
+                        <line x1="145" y1="85" x2="60" y2="155" stroke="currentColor" stroke-width="1.3"/>
+                        <line x1="155" y1="85" x2="240" y2="155" stroke="currentColor" stroke-width="1.3"/>
+                        <text x="150" y="255" font-family="'Times New Roman', serif" font-size="16" letter-spacing="0.8" fill="currentColor" text-anchor="middle" dominant-baseline="central">{s.name}</text>
+                    </svg>
+                ))}
+            </div>
         </div>
     )}
 
     <Footer />
+
+    <button class="mobile-support-bar" id="mobileSupportBar">SUPPORT THE PROJECT <span class="mobile-support-arrow">↓</span></button>
 </Base>
 
 <script>
@@ -193,5 +214,25 @@ const title = project?.title || 'Project';
 
         momentumRAF = requestAnimationFrame(momentumStep);
     });
+})();
+
+(function () {
+    const bar = document.getElementById('mobileSupportBar');
+    if (!bar) return;
+
+    const lastSection = document.querySelector('#sections > .section-wrap:last-child');
+
+    bar.addEventListener('click', () => {
+        if (lastSection) lastSection.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    if (lastSection) {
+        function update() {
+            const reached = (lastSection as Element).getBoundingClientRect().top < window.innerHeight;
+            bar.style.transform = reached ? 'translateY(100%)' : 'translateY(0)';
+        }
+        window.addEventListener('scroll', update, { passive: true });
+        update();
+    }
 })();
 </script>

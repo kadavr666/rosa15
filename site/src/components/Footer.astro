@@ -15,7 +15,7 @@ const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText, 
             {settings?.footerText && <p>{settings.footerText}</p>}
         </div>
     </div>
+    <div class="footer-logo">
+        <Logo fixed={false} />
+    </div>
 </footer>
-<div class="mobile-logo">
-    <Logo fixed={false} />
-</div>

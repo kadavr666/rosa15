@@ -1,0 +1,71 @@
+---
+import { client, sanityImageUrl } from '../../../lib/sanity';
+
+export async function getStaticPaths() {
+    const projects = await client.fetch('*[_type == "project"]{ slug }');
+    return projects
+        .filter((p: any) => p.slug?.current)
+        .map((p: any) => ({ params: { slug: p.slug.current } }));
+}
+
+const { slug } = Astro.params;
+const project = await client.fetch(
+    '*[_type == "project" && slug.current == $slug][0]{ title, supporters }',
+    { slug }
+);
+
+const supporters = project?.supporters || [];
+// Duplicate for seamless loop
+const doubled = [...supporters, ...supporters];
+---
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{project?.title} — Supporters</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #fff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .track {
+            display: flex;
+            align-items: flex-end;
+            animation: scroll linear infinite;
+            animation-duration: calc(var(--count) * 3s);
+            will-change: transform;
+        }
+
+        .track svg {
+            flex-shrink: 0;
+        }
+
+        @keyframes scroll {
+            from { transform: translateX(0); }
+            to   { transform: translateX(calc(-50%)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="track" style={`--count: ${supporters.length}`}>
+        {doubled.map((s: any) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="58 -2 184 285" width="184" height="285">
+                <circle cx="150" cy="40" r="40" fill="none" stroke="#000" stroke-width="1.3"/>
+                <line x1="150" y1="90" x2="150" y2="170" stroke="#000" stroke-width="1.3"/>
+                <line x1="145" y1="175" x2="90" y2="240" stroke="#000" stroke-width="1.3"/>
+                <line x1="155" y1="175" x2="210" y2="240" stroke="#000" stroke-width="1.3"/>
+                <line x1="145" y1="85" x2="60" y2="155" stroke="#000" stroke-width="1.3"/>
+                <line x1="155" y1="85" x2="240" y2="155" stroke="#000" stroke-width="1.3"/>
+                <text x="150" y="255" font-family="'Times New Roman', serif" font-size="16" letter-spacing="0.8" fill="#000" text-anchor="middle" dominant-baseline="central">{s.name}</text>
+            </svg>
+        ))}
+    </div>
+</body>
+</html>
