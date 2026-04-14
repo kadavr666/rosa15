@@ -489,6 +489,7 @@ main.no-scroll {
 
     .project-supporters {
         display: flex;
+        flex-wrap: nowrap;
         overflow-x: auto;
         scrollbar-width: none;
     }
