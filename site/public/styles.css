@@ -487,17 +487,6 @@ main.no-scroll {
         font-size: 14px;
     }
 
-    .project-supporters {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow: hidden;
-        touch-action: pan-y;
-    }
-
-    .project-supporters svg {
-        flex: 0 0 auto;
-    }
-
     #footer {
         min-height: 0;
         padding-bottom: 40px;
