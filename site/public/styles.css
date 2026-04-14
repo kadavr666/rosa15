@@ -489,11 +489,7 @@ main.no-scroll {
 
     .project-supporters {
         display: flex;
-        flex-wrap: nowrap;
-        overflow-x: scroll;
-        scroll-snap-type: x proximity;
-        overscroll-behavior-x: contain;
-        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
         scrollbar-width: none;
     }
 
@@ -502,8 +498,7 @@ main.no-scroll {
     }
 
     .project-supporters svg {
-        flex-shrink: 0;
-        scroll-snap-align: center;
+        flex: 0 0 auto;
     }
 
     #footer {
