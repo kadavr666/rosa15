@@ -488,15 +488,17 @@ main.no-scroll {
     }
 
     .project-supporters {
-        display: block;
-        overflow-x: auto;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: scroll;
+        overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
-        white-space: nowrap;
+        scroll-behavior: auto;
+        will-change: scroll-position;
     }
 
     .project-supporters svg {
-        display: inline-block;
-        vertical-align: top;
+        flex-shrink: 0;
     }
 
     #footer {
