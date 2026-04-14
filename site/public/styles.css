@@ -490,20 +490,12 @@ main.no-scroll {
     .project-supporters {
         display: flex;
         flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-x: contain;
-        will-change: transform;
-        scrollbar-width: none;
-    }
-
-    .project-supporters::-webkit-scrollbar {
-        display: none;
+        overflow: hidden;
+        touch-action: pan-y;
     }
 
     .project-supporters svg {
         flex: 0 0 auto;
-        shape-rendering: auto;
     }
 
     #footer {
