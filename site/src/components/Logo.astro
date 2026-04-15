@@ -1,7 +1,7 @@
 ---
 /*
-  Logo component: SVG lines + HTML text at 22px.
-  All coordinates are 1:1 pixels from logo-lab.html (no scaling).
+  Logo component: SVG lines + HTML text at 20px.
+  All coordinates from small house.svg.
   Interactive: ПОЗА → HOME on hover, @ rotates and links to contact.
 */
 import { client } from '../lib/sanity';
@@ -22,15 +22,15 @@ const contactEmail = settings?.contactEmail || '';
 
         <!-- HOME zone: ПОЗА → HOME on hover -->
         <a href="/" class="home-zone">
-            <span class="logo-text home-letter" style="left:30px; top:30px; transform:translate(-50%, -50%);" data-orig="P" data-hover="H">P</span>
-            <span class="logo-text home-letter" style="left:90px; top:30px; transform:translate(-50%, -50%);" data-orig="O" data-hover="O">O</span>
-            <span class="logo-text home-letter" style="left:30px; top:90px; transform:translate(-50%, -50%);" data-orig="З" data-hover="M">З</span>
-            <span class="logo-text home-letter" style="left:90px; top:90px; transform:translate(-50%, -50%);" data-orig="A" data-hover="E">A</span>
+            <span class="logo-text home-letter" style="left:22px; top:20px; transform:translate(-50%, -50%);" data-orig="P" data-hover="H">P</span>
+            <span class="logo-text home-letter" style="left:62px; top:20px; transform:translate(-50%, -50%);" data-orig="O" data-hover="O">O</span>
+            <span class="logo-text home-letter" style="left:22px; top:60px; transform:translate(-50%, -50%);" data-orig="З" data-hover="M">З</span>
+            <span class="logo-text home-letter" style="left:62px; top:60px; transform:translate(-50%, -50%);" data-orig="A" data-hover="E">A</span>
         </a>
 
         <!-- @ contact button -->
         <a href={contactEmail ? `mailto:${contactEmail}` : '#'} class="contact-zone">
-            <span class="logo-text contact-at" style="left:30px; top:30px; transform:translate(-50%, -50%);">@</span>
+            <span class="logo-text contact-at" style="left:20px; top:20px; transform:translate(-50%, -50%);">@</span>
         </a>
 
         <!-- 15 house number: swings on nail hover -->
@@ -39,31 +39,37 @@ const contactEmail = settings?.contactEmail || '';
                 <span class="logo-text num-text">15</span>
             </span>
         </div>
-        <span class="logo-text" style="left:240px; top:195px; transform:translate(0%, -50%);">Rosa</span>
-        <span class="logo-text" style="left:180px; top:225px; transform:translate(0%, -50%);">Luxemburg 15,</span>
-        <span class="logo-text" style="left:120px; top:255px; transform:translate(0%, -50%);">Kropotkin</span>
     </div>
 </div>
 
 <style>
+    .fixed-logo {
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        z-index: 100;
+        mix-blend-mode: exclusion;
+    }
+
     .logo-container {
         position: relative;
-        width: 315px;
-        height: 270px;
+        width: 124px;
+        height: 164px;
     }
 
     .logo-svg {
         position: absolute;
-        top: -1px;
-        left: -1px;
-        width: 182px;
-        height: 243px;
+        top: 0;
+        left: 0;
+        width: 124px;
+        height: 164px;
+        pointer-events: none;
     }
 
     .logo-text {
         position: absolute;
         font-family: 'Times New Roman', Times, serif;
-        font-size: 22px;
+        font-size: 20px;
         line-height: 1;
         letter-spacing: 0.05em;
         color: #fff;
@@ -78,9 +84,9 @@ const contactEmail = settings?.contactEmail || '';
     .home-zone {
         position: absolute;
         left: 0;
-        top: 120px;
-        width: 120px;
-        height: 120px;
+        top: 82px;
+        width: 82px;
+        height: 80px;
         text-decoration: none;
         cursor: pointer;
     }
@@ -92,10 +98,10 @@ const contactEmail = settings?.contactEmail || '';
     /* @ contact zone */
     .contact-zone {
         position: absolute;
-        left: 120px;
-        top: 120px;
-        width: 60px;
-        height: 60px;
+        left: 82px;
+        top: 82px;
+        width: 40px;
+        height: 40px;
         text-decoration: none;
         cursor: pointer;
     }
@@ -113,15 +119,15 @@ const contactEmail = settings?.contactEmail || '';
     .num-zone {
         position: absolute;
         left: 0;
-        top: 70px;
-        width: 120px;
-        height: 50px;
+        top: 42px;
+        width: 82px;
+        height: 40px;
         cursor: pointer;
     }
 
     .num-anchor {
         position: absolute;
-        left: 60px;
+        left: 42px;
         top: 25px;
         transform: translate(-50%, -50%);
     }

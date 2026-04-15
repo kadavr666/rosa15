@@ -205,7 +205,26 @@ export const siteSettings = defineType({
     defineField({
       name: 'footerText',
       title: 'Footer Text',
-      type: 'text',
+      type: 'array',
+      of: [defineArrayMember({
+        type: 'block',
+        styles: [],
+        lists: [],
+        marks: {
+          decorators: [],
+          annotations: [
+            {
+              name: 'link',
+              type: 'object',
+              title: 'Link',
+              fields: [
+                defineField({ name: 'href', type: 'url', title: 'URL', validation: Rule => Rule.uri({ allowRelative: true, scheme: ['http', 'https', 'mailto'] }) }),
+                defineField({ name: 'blank', type: 'boolean', title: 'Open in new tab', initialValue: true }),
+              ],
+            },
+          ],
+        },
+      })],
     }),
     defineField({
       name: 'contactEmail',

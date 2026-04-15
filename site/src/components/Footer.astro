@@ -1,21 +1,28 @@
 ---
 import { client } from '../lib/sanity';
+import { toHTML } from '@portabletext/to-html';
 import Logo from './Logo.astro';
 
-const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText, contactEmail, instagramUrl }');
+const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText }');
 ---
 <footer id="footer">
-    <div class="footer-content">
-        <div class="footer-links">
-            {settings?.contactEmail && <a href={`mailto:${settings.contactEmail}`}>Contact</a>}
-            {settings?.instagramUrl && <a href={settings.instagramUrl} target="_blank">Instagram</a>}
-            <a href="https://rosa15.us13.list-manage.com/subscribe?u=1ffc9ac952ede46669a7c83f7&id=5de29c5ef2" target="_blank">Subscribe</a>
-        </div>
-        <div class="footer-text">
-            {settings?.footerText && <p>{settings.footerText}</p>}
-        </div>
-    </div>
     <div class="footer-logo">
         <Logo fixed={false} />
     </div>
+    {settings?.footerText && (
+        <div class="footer-text">
+            <Fragment set:html={toHTML(settings.footerText, {
+                components: {
+                    block: {
+                        normal: ({ children }: any) => `<p>${children}</p>`,
+                    },
+                    marks: {
+                        link: ({ children, value }: any) =>
+                            `<a href="${value.href}"${value.blank ? ' target="_blank" rel="noopener"' : ''}>${children}</a>`,
+                    },
+                },
+            })} />
+        </div>
+    )}
 </footer>
+
