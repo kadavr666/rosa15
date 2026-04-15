@@ -4,6 +4,8 @@ import Footer from '../components/Footer.astro';
 import { client, sanityImageUrl } from '../lib/sanity';
 
 const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slug, heroImage, heroImageHover } | order(_createdAt desc)');
+const allSupporters = await client.fetch('array::unique(*[_type == "project"].supporters[].name + *[_type == "supporters"][0].items[].name)');
+const supporters = (allSupporters || []).map((name: string) => ({ name }));
 ---
 <Base title="Rosa 15" noScroll={true}>
     <div class={`projects-grid${projects?.length === 1 ? ' single-project' : ''}`}>
@@ -24,6 +26,33 @@ const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slu
                 </a>
             );
         })}
+        {supporters.length > 0 && (
+            <a class="project-card banner-card" href="https://wemakeit.com/projects/margenrot-antuni-vinyl" target="_blank" rel="noopener">
+                <div class="banner-inner">
+                    <div class="banner-count">{supporters.length} people supported</div>
+                    <div class="banner-parade">
+                        <div class="banner-track" style={`--count: ${supporters.length}`}>
+                            {[...supporters, ...supporters].map((s: any) => (
+                                <div class="banner-figure">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="90 51.5 120 237" style="flex:1; min-height:0; width:auto;" shape-rendering="crispEdges">
+                                        <circle cx="147.5" cy="82.5" r="29" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                                        <line x1="147.5" y1="122.5" x2="147.5" y2="187.5" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                                        <line x1="145" y1="190" x2="97.5" y2="240" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                                        <line x1="150" y1="190" x2="197.5" y2="240" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                                        <line x1="145" y1="117.5" x2="87.5" y2="170" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                                        <line x1="150" y1="117.5" x2="207.5" y2="167.5" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                                    </svg>
+                                    <span class="banner-figure-name">{s.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card-title">
+                    Support Us On<br/>WeMakeIt Platform!
+                </div>
+            </a>
+        )}
     </div>
     <Footer />
 </Base>
@@ -88,13 +117,100 @@ const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slu
         padding: 20px 0;
         line-height: 1.2;
     }
-    @media (max-width: 1420px) {
-        .project-card { width: 70vw; }
+    /* Banner card */
+    .banner-card {
+        perspective: none;
     }
-    @media (max-width: 768px) {
-        .project-card { width: 85vw; }
-        .card-flip { height: 40vh; }
-        .project-card-title { font-size: 20px; }
-        .projects-grid { padding-bottom: 0; min-height: auto; height: auto; }
+    .banner-inner {
+        width: 40vw;
+        height: 40vw;
+        border: 1px solid #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 8px 0 20px;
+        gap: 8px;
+    }
+    .banner-parade {
+        width: 100%;
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+    .banner-track {
+        display: flex;
+        align-items: flex-end;
+        height: 100%;
+        gap: 40px;
+        animation: banner-scroll linear infinite;
+        animation-duration: calc(var(--count) * 3s);
+        will-change: transform;
+        -webkit-font-smoothing: antialiased;
+    }
+    .banner-figure {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        width: 200px;
+        animation: figure-wobble 2s ease-in-out infinite alternate;
+    }
+    .banner-figure:nth-child(even) {
+        animation-delay: -1s;
+    }
+    .banner-figure:nth-child(3n) {
+        animation-duration: 2.5s;
+    }
+    .banner-figure:nth-child(5n) {
+        animation-duration: 1.8s;
+    }
+    @keyframes figure-wobble {
+        from { transform: rotate(-8deg); }
+        to { transform: rotate(8deg); }
+    }
+    .banner-figure-name {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 21px;
+        letter-spacing: 0.8px;
+        text-align: center;
+        line-height: 1.2;
+        overflow-wrap: break-word;
+        width: 100%;
+    }
+    @keyframes banner-scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+    .banner-count {
+        font-size: 20px;
+        letter-spacing: 0.05em;
+        text-align: center;
+    }
+
+    @media (max-width: 1420px) {
+        :global(main) {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        .projects-grid {
+            flex-direction: column;
+            flex: none;
+            overflow: visible;
+            scroll-snap-type: none;
+            align-items: center;
+            height: auto;
+        }
+        .project-card { width: 85vw; height: auto; }
+        .card-flip { height: 50vh; }
+        .banner-inner { width: 85vw; height: 50vh; }
+        .banner-figure { width: 160px; }
+        .banner-track { gap: 35px; }
+        .projects-grid { padding-bottom: 60px; }
     }
 </style>
+

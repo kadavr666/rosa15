@@ -5,7 +5,7 @@ import { client, sanityImageUrl } from '../../lib/sanity';
 import { toHTML } from '@portabletext/to-html';
 
 export async function getStaticPaths() {
-    const projects = await client.fetch('*[_type == "project"]{ slug }');
+    const projects = await client.fetch('*[_type == "project" && isBanner != true]{ slug }');
     return projects
         .filter((p: any) => p.slug?.current)
         .map((p: any) => ({ params: { slug: p.slug.current } }));
