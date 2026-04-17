@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Footer from '../../components/Footer.astro';
+import Banner from '../../components/Banner.astro';
 import { client, sanityImageUrl } from '../../lib/sanity';
 import { toHTML } from '@portabletext/to-html';
 
@@ -105,23 +106,8 @@ const title = project?.title || 'Project';
     </div>
 
     {project?.supporters?.length > 0 && (
-        <div class="supporters-section">
-            <div class="supporters-label">PEOPLE SUPPORTED ({project.supporters.length})</div>
-            <div class="project-supporters">
-                {project.supporters.map((s: any) => (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="90 51.5 120 237" width="120" height="237" shape-rendering="crispEdges">
-                        <circle cx="147.5" cy="82.5" r="29" fill="none" stroke="currentColor" stroke-width="1"/>
-                        <line x1="147.5" y1="122.5" x2="147.5" y2="187.5" stroke="currentColor" stroke-width="1"/>
-                        <line x1="145" y1="190" x2="97.5" y2="240" stroke="currentColor" stroke-width="1"/>
-                        <line x1="150" y1="190" x2="197.5" y2="240" stroke="currentColor" stroke-width="1"/>
-                        <line x1="145" y1="117.5" x2="87.5" y2="170" stroke="currentColor" stroke-width="1"/>
-                        <line x1="150" y1="117.5" x2="207.5" y2="167.5" stroke="currentColor" stroke-width="1"/>
-                        <foreignObject x="95" y="242" width="110" height="46">
-                            <div style="font-family:'Times New Roman',serif; font-size:16px; letter-spacing:0.8px; text-align:center; line-height:1.4; overflow-wrap:break-word;">{s.name}</div>
-                        </foreignObject>
-                    </svg>
-                ))}
-            </div>
+        <div class="banner-section">
+            <Banner supporters={project.supporters} />
         </div>
     )}
 

@@ -9,20 +9,22 @@ const settings = await client.fetch('*[_type == "siteSettings"][0]{ footerText }
     <div class="footer-logo">
         <Logo fixed={false} />
     </div>
-    {settings?.footerText && (
-        <div class="footer-text">
-            <Fragment set:html={toHTML(settings.footerText, {
-                components: {
-                    block: {
-                        normal: ({ children }: any) => `<p>${children}</p>`,
+    <div class="footer-right">
+        {settings?.footerText && (
+            <div class="footer-text">
+                <Fragment set:html={toHTML(settings.footerText, {
+                    components: {
+                        block: {
+                            normal: ({ children }: any) => `<p>${children}</p>`,
+                        },
+                        marks: {
+                            link: ({ children, value }: any) =>
+                                `<a href="${value.href}"${value.blank ? ' target="_blank" rel="noopener"' : ''}>${children}</a>`,
+                        },
                     },
-                    marks: {
-                        link: ({ children, value }: any) =>
-                            `<a href="${value.href}"${value.blank ? ' target="_blank" rel="noopener"' : ''}>${children}</a>`,
-                    },
-                },
-            })} />
-        </div>
-    )}
+                })} />
+            </div>
+        )}
+    </div>
 </footer>
 

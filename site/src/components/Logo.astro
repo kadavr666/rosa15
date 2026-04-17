@@ -1,8 +1,7 @@
 ---
 /*
-  Logo component: SVG lines + HTML text at 20px.
-  All coordinates from small house.svg.
-  Interactive: ПОЗА → HOME on hover, @ rotates and links to contact.
+  Logo component: SVG house with text.
+  Interactive: РОЗА → HOME on hover, @ rotates and links to contact, 15 swings.
 */
 import { client } from '../lib/sanity';
 
@@ -18,26 +17,37 @@ const contactEmail = settings?.contactEmail || '';
 
 <div class={`${fixed ? 'fixed-logo' : 'inline-logo'}${debug ? ' logo-debug' : ''}`}>
     <div class="logo-container">
-        <img src="/logo_lines.svg" alt="" class="logo-svg" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="24 234 372 492" class="logo-svg" shape-rendering="crispEdges">
+            <!-- House lines -->
+            <line x1="30" y1="487.5" x2="30" y2="712.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="270" y1="487.5" x2="270" y2="712.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="37.5" y1="480" x2="262.5" y2="480" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="37.5" y1="720" x2="262.5" y2="720" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="142.5" y1="367.5" x2="37.5" y2="472.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="157.5" y1="367.5" x2="262.5" y2="472.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="270" y1="240" x2="157.5" y2="352.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="277.5" y1="247.5" x2="382.5" y2="352.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="382.5" y1="367.5" x2="277.5" y2="472.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="390" y1="367.5" x2="390" y2="592.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+            <line x1="382.5" y1="607.5" x2="277.5" y2="712.5" stroke="#fff" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        </svg>
 
-        <!-- HOME zone: ПОЗА → HOME on hover -->
+        <!-- HOME zone: РОЗА → HOME on hover -->
         <a href="/" class="home-zone">
-            <span class="logo-text home-letter" style="left:22px; top:20px; transform:translate(-50%, -50%);" data-orig="P" data-hover="H">P</span>
-            <span class="logo-text home-letter" style="left:62px; top:20px; transform:translate(-50%, -50%);" data-orig="O" data-hover="O">O</span>
-            <span class="logo-text home-letter" style="left:22px; top:60px; transform:translate(-50%, -50%);" data-orig="З" data-hover="M">З</span>
-            <span class="logo-text home-letter" style="left:62px; top:60px; transform:translate(-50%, -50%);" data-orig="A" data-hover="E">A</span>
+            <span class="logo-text home-letter" data-orig="Р" data-hover="H">Р</span>
+            <span class="logo-text home-letter" data-orig="O" data-hover="O">O</span>
+            <span class="logo-text home-letter" data-orig="З" data-hover="M">З</span>
+            <span class="logo-text home-letter" data-orig="A" data-hover="E">A</span>
         </a>
 
         <!-- @ contact button -->
         <a href={contactEmail ? `mailto:${contactEmail}` : '#'} class="contact-zone">
-            <span class="logo-text contact-at" style="left:20px; top:20px; transform:translate(-50%, -50%);">@</span>
+            <span class="logo-text contact-at">@</span>
         </a>
 
-        <!-- 15 house number: swings on nail hover -->
+        <!-- 15 house number: swings on hover -->
         <div class="num-zone">
-            <span class="num-anchor">
-                <span class="logo-text num-text">15</span>
-            </span>
+            <span class="logo-text num-text">15</span>
         </div>
     </div>
 </div>
@@ -51,59 +61,82 @@ const contactEmail = settings?.contactEmail || '';
         mix-blend-mode: exclusion;
     }
 
+    .fixed-logo .logo-container {
+        width: 124px;
+    }
+
+    .inline-logo .logo-container {
+        height: 50vh;
+        width: auto;
+    }
+
     .logo-container {
         position: relative;
-        width: 124px;
-        height: 164px;
+        aspect-ratio: 372 / 492;
     }
 
     .logo-svg {
         position: absolute;
         top: 0;
         left: 0;
-        width: 124px;
-        height: 164px;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
     }
 
     .logo-text {
-        position: absolute;
         font-family: 'Times New Roman', Times, serif;
-        font-size: 20px;
-        line-height: 1;
-        letter-spacing: 0.05em;
         color: #fff;
         text-decoration: none;
         pointer-events: none;
         white-space: nowrap;
-        -webkit-font-smoothing: auto;
-        -moz-osx-font-smoothing: auto;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
-    /* HOME zone */
+    /* HOME zone — main rectangle of the house */
     .home-zone {
         position: absolute;
-        left: 0;
-        top: 82px;
-        width: 82px;
-        height: 80px;
+        left: 1.6%;
+        top: 50%;
+        width: 64.5%;
+        height: 48.8%;
         text-decoration: none;
         cursor: pointer;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        place-items: center;
     }
 
-    .home-zone:hover .home-letter {
-        /* JS handles text swap */
+    .home-zone .logo-text {
+        font-size: 21px;
     }
 
-    /* @ contact zone */
+    .fixed-logo .home-zone .logo-text {
+        font-size: 20px;
+    }
+
+    /* @ contact zone — right room upper area */
     .contact-zone {
         position: absolute;
-        left: 82px;
-        top: 82px;
-        width: 40px;
-        height: 40px;
+        left: 66.1%;
+        top: 50%;
+        width: 33.9%;
+        height: 24.4%;
         text-decoration: none;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .contact-zone .logo-text {
+        font-size: 21px;
+    }
+
+    .fixed-logo .contact-zone .logo-text {
+        font-size: 20px;
     }
 
     .contact-zone:hover .contact-at {
@@ -111,31 +144,30 @@ const contactEmail = settings?.contactEmail || '';
     }
 
     @keyframes spin-at {
-        from { transform: translate(-50%, -50%) rotate(0deg); }
-        to { transform: translate(-50%, -50%) rotate(360deg); }
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
 
-    /* 15 house number zone */
+    /* 15 house number zone — roof area */
     .num-zone {
         position: absolute;
-        left: 0;
-        top: 42px;
-        width: 82px;
-        height: 40px;
+        left: 1.6%;
+        top: 27.2%;
+        width: 64.5%;
+        height: 24.4%;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .num-anchor {
-        position: absolute;
-        left: 42px;
-        top: 25px;
-        transform: translate(-50%, -50%);
-    }
-
-    .num-text {
-        position: relative;
-        display: block;
+    .num-zone .logo-text {
+        font-size: 21px;
         transform-origin: 50% 100%;
+    }
+
+    .fixed-logo .num-zone .logo-text {
+        font-size: 20px;
     }
 
     .num-zone:hover .num-text {
@@ -152,10 +184,10 @@ const contactEmail = settings?.contactEmail || '';
         100% { transform: rotate(180deg); }
     }
 
-    /* Mobile */
-    @media (max-width: 768px) {
-        .logo-text {
-            font-size: 20px;
+    @media (max-width: 1420px) {
+        .inline-logo .logo-container {
+            height: 50vh;
+            width: auto;
         }
     }
 
@@ -167,7 +199,9 @@ const contactEmail = settings?.contactEmail || '';
         background-size: 5px 5px;
     }
 
-    .logo-debug .logo-text {
+    .logo-debug .home-zone,
+    .logo-debug .contact-zone,
+    .logo-debug .num-zone {
         outline: 1px dashed rgba(255, 0, 0, 0.3);
     }
 </style>
