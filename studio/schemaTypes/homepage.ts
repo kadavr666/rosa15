@@ -135,6 +135,23 @@ export const project = defineType({
       ],
     }),
     defineField({
+      name: 'buttons',
+      title: 'Buttons',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'button',
+          fields: [
+            defineField({name: 'label', type: 'string', title: 'Label'}),
+            defineField({name: 'href', type: 'url', title: 'URL', validation: Rule => Rule.uri({allowRelative: true, scheme: ['http', 'https', 'mailto']})}),
+            defineField({name: 'blank', type: 'boolean', title: 'Open in new tab', initialValue: true}),
+          ],
+          preview: {select: {title: 'label', subtitle: 'href'}},
+        }),
+      ],
+    }),
+    defineField({
       name: 'supporters',
       title: 'Supporters',
       type: 'array',
