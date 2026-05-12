@@ -7,6 +7,7 @@ import { client, sanityImageUrl } from '../lib/sanity';
 const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slug, heroImage, heroImageHover } | order(_createdAt desc)');
 const allSupporters = await client.fetch('array::unique(*[_type == "project"].supporters[].name + *[_type == "supporters"][0].items[].name)');
 const supporters = (allSupporters || []).map((name: string) => ({ name }));
+const supporterCount = await client.fetch('count(*[_type == "project"].supporters[].name) + count(*[_type == "supporters"][0].items[].name)');
 ---
 <Base title="Rosa 15">
     <div class={`projects-grid${projects?.length === 1 ? ' single-project' : ''}`}>
@@ -29,7 +30,7 @@ const supporters = (allSupporters || []).map((name: string) => ({ name }));
         })}
         {supporters.length > 0 && (
             <div class="project-card banner-card">
-                <Banner supporters={supporters} />
+                <Banner supporters={supporters} totalCount={supporterCount} />
             </div>
         )}
     </div>
@@ -128,6 +129,10 @@ const supporters = (allSupporters || []).map((name: string) => ({ name }));
         .card-flip { height: 50vh; }
         .banner-card :global(.banner-inner) { width: 85vw; height: 50vh; }
         .banner-card :global(.banner-title) { padding: 20px 0 0; }
+    }
+
+    @media (max-width: 768px) {
+        .banner-card :global(.banner-inner) { height: 42vh; }
     }
 </style>
 

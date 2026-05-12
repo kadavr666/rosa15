@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hearts</title>
+<style>
+  @font-face {
+    font-family: 'RosaLines';
+    src: url('RosaLines.ttf') format('truetype');
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    font-family: -apple-system, sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+  }
+  canvas {
+    background: #fff;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+  }
+
+  .panel {
+    width: 280px;
+    background: #fff;
+    border-left: 1px solid #e0e0e0;
+    padding: 24px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .panel h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #333;
+  }
+  .control {
+    margin-bottom: 16px;
+  }
+  .control label {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .control input[type="range"] {
+    width: 100%;
+    accent-color: #111;
+  }
+  .control .val {
+    font-size: 12px;
+    font-family: monospace;
+    color: #555;
+    float: right;
+    margin-top: -18px;
+  }
+  .control input[type="color"] {
+    width: 40px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background 0.15s;
+  }
+  button:hover { background: #eee; }
+  button.primary {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+  button.primary:hover { background: #333; }
+  .divider {
+    height: 1px;
+    background: #eee;
+    margin: 20px 0;
+  }
+  .hint {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas-wrap">
+  <canvas id="c"></canvas>
+</div>
+
+<div class="panel">
+  <h2>Controls</h2>
+
+  <div class="control" style="display:none;">
+    <label>Hearts per spawn <span class="val" id="v-lines">4</span></label>
+    <input type="range" id="s-lines" min="1" max="12" value="4">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Heart size <span class="val" id="v-len">80</span></label>
+    <input type="range" id="s-len" min="20" max="200" value="80">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Sway <span class="val" id="v-speed">4</span></label>
+    <input type="range" id="s-speed" min="0" max="12" value="4" step="0.5">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Rise speed <span class="val" id="v-rise">6</span></label>
+    <input type="range" id="s-rise" min="1" max="14" value="6" step="0.5">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Gravity <span class="val" id="v-grav">0.06</span></label>
+    <input type="range" id="s-grav" min="0" max="0.2" value="0.06" step="0.01">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Heart life <span class="val" id="v-life">4.0s</span></label>
+    <input type="range" id="s-life" min="0.5" max="10" value="4.0" step="0.1">
+  </div>
+  <div class="control">
+    <label>Stroke width <span class="val" id="v-stroke">1</span></label>
+    <input type="range" id="s-stroke" min="0.5" max="4" value="1" step="0.5">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Auto-launch interval <span class="val" id="v-interval">1.5s</span></label>
+    <input type="range" id="s-interval" min="0.3" max="5" value="1.5" step="0.1">
+  </div>
+  <div class="control" style="display:none;">
+    <label>Randomize <span class="val" id="v-rand">50%</span></label>
+    <input type="range" id="s-rand" min="0" max="100" value="50">
+  </div>
+
+  <div class="divider" style="display:none;"></div>
+
+  <div class="control" style="display:none;">
+    <label>Heart color</label>
+    <input type="color" id="s-color" value="#000000">
+  </div>
+  <div class="control">
+    <label>Figures</label>
+    <input type="color" id="s-figurecolor" value="#000000">
+  </div>
+  <div class="control">
+    <label>Hearts</label>
+    <input type="color" id="s-heartcolor" value="#000000">
+  </div>
+  <div class="control">
+    <label>Names</label>
+    <input type="color" id="s-namecolor" value="#000000">
+  </div>
+  <div class="control">
+    <label>Text</label>
+    <input type="color" id="s-textcolor" value="#000000">
+  </div>
+  <div class="control">
+    <label>Border</label>
+    <input type="color" id="s-bordercolor" value="#000000">
+  </div>
+  <div class="control">
+    <label>Background</label>
+    <input type="color" id="s-bg" value="#ffffff">
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="btn-row" style="display:none;">
+    <button class="primary" id="btn-launch">Send</button>
+    <button id="btn-clear">Clear</button>
+  </div>
+  <div class="btn-row">
+    <button id="btn-auto" style="display:none;">Auto: ON</button>
+    <button id="btn-pause">Pause</button>
+  </div>
+  <div class="btn-row" style="display:none;">
+    <button id="btn-randcolor">Random Colors: OFF</button>
+  </div>
+  <div class="btn-row">
+    <button id="btn-save">Save Settings</button>
+    <button id="btn-load">Load Settings</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="control">
+    <label>People (comma-separated)</label>
+    <textarea id="s-names" style="width:100%;height:100px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:11px;font-family:-apple-system,sans-serif;resize:vertical;">Timur Akhmetov, Lusia Kazaryan, Natasha Ganelina, Ivan Smekalin, Wladyslaw Dmowski, Evgeniy Fadeev, Ilya Goryachev, Nastya Kremer, Ivan Mochnacz, Taras Sochinsky, Anya Zakharova, Nadia B., P.Amir, Samokhvalov P., Boris G., Sergey K., Oksana Fedorenko, Polina Tomash, Boring Machines, Ksenia Romanova, Daria Bokova, jmurachanian23, Igor Isakov, Maksim Dolgov, Igor Kramarenko, Aleksey T., Dmitry K., Sasha, Danissimov, Maxim Balabin, Furqat Palvan-Zade, Karina Nikitina, Vika Ryskina, Anonymous, Anonymous, MMNK, aaa bbb, Anna Devlet-Kildeeva, hiemma mackay, Anonymous, Oxana Sitchuk, Kristina Sarkhanyants, ranrex, Olesya Voronina, Mariam Levoni Khachaturian, Anonymous, Anonymous, Seva Gorbach, nikobo, Alena B., Stas Zykov, Anonymous, Jenia Rafalson, Mikhail Teryoshkin, Nekhorosheva Ekaterina, Kio, Sophie10oaklands, Zurkas Tepla, Irina Skabelkina, MattiaCapelletti, voidandsergey, yutani, Grigori Sokolinski, truemarin, elizabethdarko, vogler, Grisha Melikhov, lllapleiade, Stas, Anonymous, Anonymous, Alexey N., Mikhail Afonin, Vasenin Vlad</textarea>
+  </div>
+  <div class="control">
+    <label>Figure speed <span class="val" id="v-figspeed">3</span></label>
+    <input type="range" id="s-figspeed" min="0.5" max="10" value="3" step="0.5">
+  </div>
+  <div class="control">
+    <label>Show people <span class="val" id="v-people">on</span></label>
+    <input type="range" id="s-people" min="0" max="1" value="1" step="1">
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  const wrap = canvas.parentElement;
+  const maxW = wrap.clientWidth - 48;
+  const maxH = wrap.clientHeight - 48;
+  const aspect = 1080 / 1350;
+  let w, h;
+  if (maxW / maxH > aspect) {
+    h = maxH;
+    w = h * aspect;
+  } else {
+    w = maxW;
+    h = w / aspect;
+  }
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = 1080;
+  canvas.height = 1350;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const cfg = {
+  lines: 4, len: 80, speed: 4, rise: 6,
+  grav: 0.06, life: 4.0, stroke: 1, interval: 1.5,
+  rand: 50, figspeed: 3, color: '#000000', bg: '#ffffff',
+  figureColor: '#000000', heartColor: '#000000', nameColor: '#000000', textColor: '#000000', borderColor: '#000000'
+};
+
+function bindSlider(id, key, suffix) {
+  const el = document.getElementById('s-' + id);
+  const val = document.getElementById('v-' + id);
+  el.addEventListener('input', () => {
+    cfg[key] = parseFloat(el.value);
+    val.textContent = el.value + (suffix || '');
+  });
+}
+bindSlider('lines', 'lines');
+bindSlider('len', 'len');
+bindSlider('speed', 'speed');
+bindSlider('rise', 'rise');
+bindSlider('grav', 'grav');
+bindSlider('life', 'life', 's');
+bindSlider('stroke', 'stroke');
+bindSlider('interval', 'interval', 's');
+bindSlider('rand', 'rand', '%');
+bindSlider('figspeed', 'figspeed');
+
+document.getElementById('s-color').addEventListener('input', e => cfg.color = e.target.value);
+document.getElementById('s-bg').addEventListener('input', e => {
+  cfg.bg = e.target.value;
+  canvas.style.background = e.target.value;
+});
+document.getElementById('s-figurecolor').addEventListener('input', e => { cfg.figureColor = e.target.value; lastNamesSig = ''; });
+document.getElementById('s-heartcolor').addEventListener('input', e => cfg.heartColor = e.target.value);
+document.getElementById('s-namecolor').addEventListener('input', e => cfg.nameColor = e.target.value);
+document.getElementById('s-textcolor').addEventListener('input', e => cfg.textColor = e.target.value);
+document.getElementById('s-bordercolor').addEventListener('input', e => cfg.borderColor = e.target.value);
+
+// Random colors mode — each heart gets its own color
+let randColors = false;
+function randomHex() {
+  const h = Math.floor(Math.random() * 360);
+  const s = 70 + Math.floor(Math.random() * 30); // 70-100%
+  const l = 40 + Math.floor(Math.random() * 15); // 40-55%
+  return `hsl(${h},${s}%,${l}%)`;
+}
+const btnRandColor = document.getElementById('btn-randcolor');
+btnRandColor.addEventListener('click', () => {
+  randColors = !randColors;
+  btnRandColor.textContent = 'Random Colors: ' + (randColors ? 'ON' : 'OFF');
+});
+
+// Save / Load settings
+const SETTINGS_KEY = 'rosalines-hearts';
+function syncUI() {
+  document.getElementById('s-lines').value = cfg.lines;
+  document.getElementById('v-lines').textContent = cfg.lines;
+  document.getElementById('s-len').value = cfg.len;
+  document.getElementById('v-len').textContent = cfg.len;
+  document.getElementById('s-speed').value = cfg.speed;
+  document.getElementById('v-speed').textContent = cfg.speed;
+  document.getElementById('s-rise').value = cfg.rise;
+  document.getElementById('v-rise').textContent = cfg.rise;
+  document.getElementById('s-grav').value = cfg.grav;
+  document.getElementById('v-grav').textContent = cfg.grav;
+  document.getElementById('s-life').value = cfg.life;
+  document.getElementById('v-life').textContent = cfg.life + 's';
+  document.getElementById('s-stroke').value = cfg.stroke;
+  document.getElementById('v-stroke').textContent = cfg.stroke;
+  document.getElementById('s-interval').value = cfg.interval;
+  document.getElementById('v-interval').textContent = cfg.interval + 's';
+  document.getElementById('s-rand').value = cfg.rand;
+  document.getElementById('v-rand').textContent = cfg.rand + '%';
+  document.getElementById('s-figspeed').value = cfg.figspeed;
+  document.getElementById('v-figspeed').textContent = cfg.figspeed;
+  document.getElementById('s-color').value = cfg.color;
+  document.getElementById('s-bg').value = cfg.bg;
+  canvas.style.background = cfg.bg;
+}
+document.getElementById('btn-save').addEventListener('click', () => {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg));
+});
+document.getElementById('btn-load').addEventListener('click', () => {
+  const saved = localStorage.getItem(SETTINGS_KEY);
+  if (saved) {
+    Object.assign(cfg, JSON.parse(saved));
+    syncUI();
+  }
+});
+// Auto-load on start
+const saved = localStorage.getItem(SETTINGS_KEY);
+if (saved) { Object.assign(cfg, JSON.parse(saved)); syncUI(); }
+
+const hearts = [];
+let autoMode = true;
+let paused = false;
+let autoTimer = 0;
+
+// Randomize helper: lerp a value toward a random variant based on rand %
+function vary(base, amount) {
+  const r = cfg.rand / 100;
+  return base * (1 + (Math.random() * 2 - 1) * amount * r);
+}
+
+// "<3" drawn as line-segment text
+
+class Heart {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.age = 0;
+    this.alive = true;
+    this.lifespan = vary(cfg.life, 0.4);
+    this.scale = vary(cfg.len / 45, 0.5);
+    this.riseSpeed = vary(cfg.rise * 40, 0.3);
+    this.swayPhase = Math.random() * Math.PI * 2;
+    this.swayAmount = cfg.speed * 12;
+    this.swayFreq = vary(1.2, 0.3);
+    this.rotation = -Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+    this.rotSpeed = (Math.random() - 0.5) * 0.3;
+    this.color = randColors ? randomHex() : cfg.color;
+  }
+  update(dt) {
+    this.age += dt;
+    if (this.age >= this.lifespan) {
+      this.alive = false;
+      return;
+    }
+    this.y -= this.riseSpeed * dt;
+    this.x += Math.sin(this.age * this.swayFreq * Math.PI * 2 + this.swayPhase) * this.swayAmount * dt;
+    this.rotation += this.rotSpeed * dt;
+  }
+  draw() {
+    const progress = this.age / this.lifespan;
+    let sc = this.scale;
+    // Shrink toward end of life
+    if (progress > 0.65) {
+      sc *= 1 - (progress - 0.65) / 0.35;
+    }
+    if (sc < 0.01) return;
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.lineWidth = cfg.stroke;
+    ctx.strokeStyle = this.color;
+
+    // < part
+    ctx.beginPath();
+    ctx.moveTo(6 * sc, -37 * sc);
+    ctx.lineTo(-29 * sc, 0);
+    ctx.lineTo(6 * sc, 37 * sc);
+    ctx.stroke();
+
+    // top arc of 3
+    ctx.beginPath();
+    ctx.arc(11 * sc, -19 * sc, 18 * sc, Math.PI / 2, -Math.PI / 2, true);
+    ctx.stroke();
+
+    // bottom arc of 3
+    ctx.beginPath();
+    ctx.arc(11 * sc, 19 * sc, 18 * sc, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+// Character segment definitions for line-drawn text
+const charSegs = {
+  A:[[2,87,19,3],[23,3,40,87],[10,45,32,45]],
+  B:[[0,3,0,39],[0,45,0,87],[3,0,39,0],[42,3,42,39],[3,42,39,42],[42,45,42,87],[3,90,39,90]],
+  C:[[3,0,39,0],[0,3,0,87],[3,90,39,90]],
+  D:[[3,0,39,0],[42,3,42,87],[3,90,39,90],[0,3,0,87]],
+  E:[[3,0,39,0],[0,3,0,39],[3,42,39,42],[0,45,0,87],[3,90,39,90]],
+  F:[[3,0,39,0],[0,3,0,39],[3,42,39,42],[0,45,0,87]],
+  G:[[3,0,39,0],[0,3,0,87],[3,90,39,90],[42,45,42,87],[21,42,39,42]],
+  H:[[0,3,0,39],[0,45,0,87],[3,42,39,42],[42,3,42,39],[42,45,42,87]],
+  I:[[3,0,39,0],[21,3,21,87],[3,90,39,90]],
+  J:[[42,3,42,87],[3,90,39,90],[0,72,0,87]],
+  K:[[0,3,0,87],[39,3,5,39],[5,48,39,87]],
+  L:[[0,3,0,87],[3,90,39,90]],
+  M:[[0,3,0,87],[42,3,42,87],[3,6,18,45],[24,45,39,6]],
+  N:[[0,3,0,87],[42,3,42,87],[3,6,39,84]],
+  O:[[3,0,39,0],[42,3,42,87],[3,90,39,90],[0,3,0,87]],
+  P:[[3,0,39,0],[0,3,0,39],[42,3,42,39],[3,42,39,42],[0,45,0,87]],
+  Q:[[3,0,39,0],[42,3,42,87],[3,90,33,90],[0,3,0,87],[33,81,48,96]],
+  R:[[3,0,39,0],[0,3,0,39],[42,3,42,39],[3,42,39,42],[0,45,0,87],[6,48,39,87]],
+  S:[[3,0,39,0],[0,3,0,39],[3,42,39,42],[42,45,42,87],[3,90,39,90]],
+  T:[[3,0,39,0],[21,3,21,87]],
+  U:[[0,3,0,87],[3,90,39,90],[42,3,42,87]],
+  V:[[3,3,19,87],[23,87,39,3]],
+  W:[[0,3,0,87],[42,3,42,87],[3,84,18,45],[24,45,39,84]],
+  X:[[3,3,18,42],[24,48,39,87],[39,3,24,42],[18,48,3,87]],
+  Y:[[3,3,18,42],[24,42,39,3],[21,45,21,87]],
+  Z:[[3,0,39,0],[39,6,3,84],[3,90,39,90]],
+  a:[[3,36,39,36],[42,39,42,60],[3,63,39,63],[0,66,0,87],[42,66,42,87],[3,90,39,90]],
+  b:[[0,3,0,60],[3,63,39,63],[0,66,0,87],[42,66,42,87],[3,90,39,90]],
+  c:[[3,36,39,36],[0,39,0,87],[3,90,39,90]],
+  d:[[42,3,42,60],[3,63,39,63],[0,66,0,87],[42,66,42,87],[3,90,39,90]],
+  e:[[3,36,39,36],[0,39,0,60],[42,39,42,60],[3,63,39,63],[0,66,0,87],[3,90,39,90]],
+  f:[[12,0,39,0],[21,3,21,33],[3,36,39,36],[21,39,21,87]],
+  g:[[3,36,39,36],[0,39,0,60],[42,39,42,60],[3,63,39,63],[42,66,42,87],[3,90,39,90],[42,93,42,105],[3,108,39,108]],
+  h:[[0,3,0,33],[3,36,39,36],[0,39,0,87],[42,39,42,87]],
+  i:[[21,27,21,30],[21,39,21,87]],
+  j:[[21,27,21,30],[21,39,21,87],[21,93,21,105],[3,108,18,108]],
+  k:[[0,3,0,87],[36,39,5,60],[5,66,36,87]],
+  l:[[21,3,21,87]],
+  m:[[3,36,39,36],[0,39,0,87],[21,39,21,87],[42,39,42,87]],
+  n:[[0,39,0,87],[3,36,39,36],[42,39,42,87]],
+  o:[[3,36,39,36],[0,39,0,87],[42,39,42,87],[3,90,39,90]],
+  p:[[3,36,39,36],[0,39,0,60],[42,39,42,60],[3,63,39,63],[0,66,0,108]],
+  q:[[3,36,39,36],[0,39,0,60],[42,39,42,60],[3,63,39,63],[42,66,42,108]],
+  r:[[3,36,39,36],[0,39,0,87]],
+  s:[[3,36,39,36],[0,39,0,60],[3,63,39,63],[42,66,42,87],[3,90,39,90]],
+  t:[[0,3,0,33],[3,36,39,36],[0,39,0,87],[3,90,39,90]],
+  u:[[0,39,0,87],[3,90,39,90],[42,39,42,87]],
+  v:[[3,39,19,87],[23,87,39,39]],
+  w:[[0,39,0,87],[21,39,21,87],[42,39,42,87],[3,90,39,90]],
+  x:[[3,39,18,60],[24,66,39,87],[39,39,24,60],[18,66,3,87]],
+  y:[[3,39,18,60],[24,60,39,39],[21,63,21,87],[21,93,21,108]],
+  z:[[3,36,39,36],[39,39,3,87],[3,90,39,90]],
+  '<':[[36,12,3,45],[3,45,36,78]],
+  '3':[[5,3,22,0],[22,0,38,8],[38,8,42,22],[42,22,38,36],[38,36,22,42],[22,42,5,42],[5,48,22,48],[22,48,38,54],[38,54,42,68],[42,68,38,82],[38,82,22,90],[22,90,5,87]],
+  ' ':null
+};
+
+// Compute glyph widths from segments
+const charWidths = {};
+for (const [ch, segs] of Object.entries(charSegs)) {
+  if (!segs) { charWidths[ch] = 20; continue; }
+  let maxX = 0;
+  for (const s of segs) { maxX = Math.max(maxX, s[0], s[2]); }
+  charWidths[ch] = maxX;
+}
+
+// Draw a string as line segments. (x,y) = left baseline, sc = scale factor
+function drawLineText(text, x, y, sc, color, gap) {
+  ctx.strokeStyle = color;
+  gap = gap || 12;
+  let cx = x;
+  for (const ch of text) {
+    const segs = charSegs[ch];
+    if (!segs) { cx += (20 + gap) * sc; continue; }
+    for (const s of segs) {
+      ctx.beginPath();
+      ctx.moveTo(cx + s[0] * sc, y + s[1] * sc);
+      ctx.lineTo(cx + s[2] * sc, y + s[3] * sc);
+      ctx.stroke();
+    }
+    cx += (charWidths[ch] + gap) * sc;
+  }
+  return cx - x; // total width drawn
+}
+
+// Measure line text width without drawing
+function measureLineText(text, sc, gap) {
+  gap = gap || 12;
+  let w = 0;
+  for (const ch of text) {
+    w += ((charWidths[ch] || 20) + gap) * sc;
+  }
+  return w - gap * sc;
+}
+
+// Draw centered line text
+function drawLineTextCentered(text, cx, y, sc, color, gap) {
+  const w = measureLineText(text, sc, gap);
+  drawLineText(text, cx - w / 2, y, sc, color, gap);
+}
+
+// People
+let showPeople = true;
+document.getElementById('s-people').addEventListener('input', e => {
+  showPeople = e.target.value === '1';
+  document.getElementById('v-people').textContent = showPeople ? 'on' : 'off';
+});
+
+function getNames() {
+  return document.getElementById('s-names').value
+    .split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+
+// Draw a single stick figure (origin at feet, pointing up)
+// Arms reach out to sides for hand-holding
+function drawFigureLocal(h, color) {
+  const s = h / 188.5;
+  const headR = 29 * s;
+  const headY = -h + 31 * s;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = cfg.stroke;
+
+  // Head
+  ctx.beginPath();
+  ctx.arc(0, headY, headR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Body
+  ctx.beginPath();
+  ctx.moveTo(0, -h + 71 * s);
+  ctx.lineTo(0, -h + 136 * s);
+  ctx.stroke();
+
+  // Left arm — reaches out to neighbor
+  ctx.beginPath();
+  ctx.moveTo(-2.5 * s, -h + 66 * s);
+  ctx.lineTo(-60 * s, -h + 100 * s);
+  ctx.stroke();
+
+  // Right arm — reaches out to neighbor
+  ctx.beginPath();
+  ctx.moveTo(2.5 * s, -h + 66 * s);
+  ctx.lineTo(60 * s, -h + 100 * s);
+  ctx.stroke();
+
+  // Left leg
+  ctx.beginPath();
+  ctx.moveTo(-2.5 * s, -h + 138.5 * s);
+  ctx.lineTo(-47.5 * s, 0);
+  ctx.stroke();
+
+  // Right leg
+  ctx.beginPath();
+  ctx.moveTo(2.5 * s, -h + 138.5 * s);
+  ctx.lineTo(47.5 * s, 0);
+  ctx.stroke();
+}
+
+let peopleColors = [];
+let lastNamesSig = '';
+// Each figure gets a wobble phase and period
+let wobblePhases = [];
+let wobblePeriods = [];
+let heartRates = [];
+let heartAmps = [];
+let heartPhases = [];
+
+function drawPeople(time) {
+  const names = getNames();
+  if (!names.length) return;
+
+  // Doubled list for seamless scrolling (same as Banner)
+  const doubled = [...names, ...names];
+
+  // Assign stable colors and wobble params when names change
+  const sig = names.join(',') + (randColors ? '1' : '0');
+  if (sig !== lastNamesSig) {
+    lastNamesSig = sig;
+    peopleColors = doubled.map(() => randColors ? randomHex() : cfg.color);
+    const basePhases = names.map((_, i) => i % 2 === 0 ? 0 : Math.PI);
+    const basePeriods = names.map((_, i) => {
+      if (i % 5 === 0) return 1.8;
+      if (i % 3 === 0) return 2.5;
+      return 2.0;
+    });
+    wobblePhases = [...basePhases, ...basePhases];
+    wobblePeriods = [...basePeriods, ...basePeriods];
+    const baseRates = names.map(() => 0.8 + Math.random() * 1.7);
+    const baseAmps = names.map(() => 0.2 + Math.random() * 0.35);
+    const baseHPhases = names.map(() => Math.random() * Math.PI * 2);
+    heartRates = [...baseRates, ...baseRates];
+    heartAmps = [...baseAmps, ...baseAmps];
+    heartPhases = [...baseHPhases, ...baseHPhases];
+  }
+  for (let i = 0; i < doubled.length; i++) peopleColors[i] = cfg.figureColor;
+
+  const figH = 1350 * 0.72;
+  const s = figH / 188.5;
+  const spacing = 120 * s;
+  const groundY = 570 + figH / 2;
+  const totalTrackW = doubled.length * spacing;
+  const halfW = totalTrackW / 2;
+
+  // Scroll speed controlled by figspeed slider
+  const scrollDuration = names.length * (10 / cfg.figspeed);
+  const scrollOffset = ((time / 1000) % scrollDuration) / scrollDuration * halfW;
+
+  ctx.save();
+
+  const nameSc = figH / 188.5 * 0.18;
+
+  for (let i = 0; i < doubled.length; i++) {
+    let cx = i * spacing - scrollOffset;
+    while (cx < -spacing) cx += totalTrackW;
+    while (cx > 1080 + spacing) cx -= totalTrackW;
+
+    const wobbleAngle = Math.sin((time / 1000) * Math.PI / wobblePeriods[i] + wobblePhases[i]) * (8 * Math.PI / 180);
+
+    ctx.save();
+    ctx.translate(cx, groundY);
+    ctx.rotate(wobbleAngle);
+
+    drawFigureLocal(figH, peopleColors[i]);
+
+    // Beating heart on chest — random rate and amplitude per figure
+    const beat = Math.abs(Math.sin(time / 1000 * heartRates[i] * Math.PI + heartPhases[i]));
+    const hsc = s * 0.65 * (1 + beat * heartAmps[i]);
+    ctx.save();
+    ctx.translate(12 * s, -figH + 95 * s);
+    ctx.rotate(-Math.PI / 2);
+    ctx.strokeStyle = cfg.heartColor;
+    ctx.lineWidth = cfg.stroke;
+    ctx.beginPath();
+    ctx.moveTo(6 * hsc, -25 * hsc);
+    ctx.lineTo(-29 * hsc, 0);
+    ctx.lineTo(6 * hsc, 25 * hsc);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(11 * hsc, -13 * hsc, 18 * hsc, 12 * hsc, 0, Math.PI / 2, -Math.PI / 2, true);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(11 * hsc, 13 * hsc, 18 * hsc, 12 * hsc, 0, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Name below feet as line segments, split into two lines
+    const parts = doubled[i].split(' ');
+    const line1 = parts[0] || '';
+    const line2 = parts.slice(1).join(' ') || '';
+    const lineH = 90 * nameSc + 12;
+    const w1 = measureLineText(line1, nameSc);
+    drawLineText(line1, -w1 / 2, 12, nameSc, cfg.nameColor);
+    if (line2) {
+      const w2 = measureLineText(line2, nameSc);
+      drawLineText(line2, -w2 / 2, 12 + lineH, nameSc, cfg.nameColor);
+    }
+
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function heartsOverlap(x, y, scale) {
+  const minDist = 40 * scale;
+  for (const h of hearts) {
+    const dx = h.x - x;
+    const dy = h.y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const need = minDist + 40 * h.scale;
+    if (dist < need) return true;
+  }
+  return false;
+}
+
+function launch(x, y) {
+  const scale = vary(cfg.len / 45, 0.5);
+  let hx, hy, tries = 0;
+  do {
+    hx = (x !== undefined ? x : 100 + Math.random() * 880);
+    hy = (y !== undefined ? y : 400 + Math.random() * 900);
+    tries++;
+  } while (heartsOverlap(hx, hy, scale) && tries < 20);
+  if (tries < 20) hearts.push(new Heart(hx, hy));
+}
+
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (1080 / rect.width);
+  const y = (e.clientY - rect.top) * (1350 / rect.height);
+  launch(x, y);
+});
+
+document.getElementById('btn-launch').addEventListener('click', () => launch());
+document.getElementById('btn-clear').addEventListener('click', () => {
+  hearts.length = 0;
+});
+const btnAuto = document.getElementById('btn-auto');
+btnAuto.addEventListener('click', () => {
+  autoMode = !autoMode;
+  btnAuto.textContent = 'Auto: ' + (autoMode ? 'ON' : 'OFF');
+});
+const btnPause = document.getElementById('btn-pause');
+btnPause.addEventListener('click', () => {
+  paused = !paused;
+  btnPause.textContent = paused ? 'Play' : 'Pause';
+});
+
+let supporterTotal = 76;
+
+let lastTime = 0;
+function frame(time) {
+  requestAnimationFrame(frame);
+  if (paused) { lastTime = time; return; }
+  const dt = Math.min((time - lastTime) / 1000, 0.05);
+  lastTime = time;
+
+  // Clear — no transparency, full repaint
+  ctx.fillStyle = cfg.bg;
+  ctx.fillRect(0, 0, 1080, 1350);
+
+  ctx.lineWidth = cfg.stroke;
+  ctx.lineCap = 'butt';
+
+
+  // Thank-you text at the top with letter-spacing
+  ctx.font = "42px 'Times New Roman', Times, serif";
+  ctx.textBaseline = 'top';
+  const ls = 42 * 0.05;
+  function drawSpaced(text, cx, y) {
+    let totalW = 0;
+    for (const ch of text) totalW += ctx.measureText(ch).width + ls;
+    totalW -= ls;
+    let x = cx - totalW / 2;
+    for (const ch of text) {
+      ctx.fillStyle = cfg.textColor;
+      ctx.fillText(ch, x, y);
+      ctx.strokeStyle = cfg.bg;
+      ctx.lineWidth = 0.4;
+      ctx.strokeText(ch, x, y);
+      x += ctx.measureText(ch).width + ls;
+    }
+  }
+  ctx.textAlign = 'left';
+  const boxPad = 30;
+  const boxTop = 30 - boxPad;
+  const boxBot = 83 + 42 + boxPad;
+  const boxLeft = boxPad;
+  const boxRight = 1080 - boxPad;
+  ctx.strokeStyle = cfg.borderColor;
+  ctx.lineWidth = cfg.stroke;
+  ctx.strokeRect(boxLeft, boxTop, boxRight - boxLeft, boxBot - boxTop);
+
+  drawSpaced('We did it! A huge thank you to everyone', 540, 30);
+  drawSpaced('who supported this campaign!', 540, 83);
+
+  if (showPeople) drawPeople(time);
+
+  // Bottom stats
+  ctx.font = "42px 'Times New Roman', Times, serif";
+  const lsB = 42 * 0.05;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'bottom';
+  function drawStatChar(ch, x, y) {
+    ctx.fillStyle = cfg.textColor;
+    ctx.fillText(ch, x, y);
+    ctx.strokeStyle = cfg.bg;
+    ctx.lineWidth = 0.4;
+    ctx.strokeText(ch, x, y);
+  }
+  let bx = 30;
+  for (const ch of `${supporterTotal} Supporters`) {
+    drawStatChar(ch, bx, 1350 - 30);
+    bx += ctx.measureText(ch).width + lsB;
+  }
+  let rx = 1080 - 30;
+  const rightText = '2000 EUR Collected';
+  const rChars = [...rightText];
+  let rWidths = rChars.map(ch => ctx.measureText(ch).width + lsB);
+  let rTotal = rWidths.reduce((a, b) => a + b, 0) - lsB;
+  let rStart = rx - rTotal;
+  for (let i = 0; i < rChars.length; i++) {
+    drawStatChar(rChars[i], rStart, 1350 - 30);
+    rStart += rWidths[i];
+  }
+}
+requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>

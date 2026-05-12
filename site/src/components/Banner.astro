@@ -1,34 +1,48 @@
 ---
 interface Props {
     supporters: { name: string }[];
+    totalCount?: number;
     href?: string;
 }
-const { supporters, href = 'https://wemakeit.com/projects/margenrot-antuni-vinyl' } = Astro.props;
+const { supporters, totalCount, href = 'https://wemakeit.com/projects/margenrot-antuni-vinyl' } = Astro.props;
 const doubled = [...supporters, ...supporters];
 ---
 
 <div class="banner-wrap">
-    <a class="banner-inner" href={href} target="_blank" rel="noopener">
-        <div class="banner-count">{supporters.length} people supported</div>
+    <div class="banner-inner">
+        <div class="banner-message">
+            We did it! A huge thank you to everyone<br/>who supported this campaign!
+        </div>
         <div class="banner-parade">
             <div class="banner-track" style={`--count: ${supporters.length}`}>
                 {doubled.map((s) => (
                     <div class="banner-figure">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="90 51.5 120 237" style="flex:1; min-height:0; width:auto;" shape-rendering="crispEdges">
-                            <circle cx="147.5" cy="82.5" r="29" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                            <line x1="147.5" y1="122.5" x2="147.5" y2="187.5" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                            <line x1="145" y1="190" x2="97.5" y2="240" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                            <line x1="150" y1="190" x2="197.5" y2="240" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                            <line x1="145" y1="117.5" x2="87.5" y2="170" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
-                            <line x1="150" y1="117.5" x2="207.5" y2="167.5" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                            <circle cx="147.5" cy="82.5" r="29" fill="none"/>
+                            <line x1="147.5" y1="122.5" x2="147.5" y2="187.5"/>
+                            <line x1="145" y1="190" x2="97.5" y2="240"/>
+                            <line x1="150" y1="190" x2="197.5" y2="240"/>
+                            <line x1="145" y1="117.5" x2="87.5" y2="170"/>
+                            <line x1="150" y1="117.5" x2="207.5" y2="167.5"/>
+                            <g transform="translate(159.5, 147) rotate(-90)">
+                                <g class="figure-heart">
+                                    <polyline points="2.16,-9 -10.44,0 2.16,9" fill="none"/>
+                                    <path d="M 3.96,-0.36 A 6.48 4.32 0 0 0 3.96,-9" fill="none"/>
+                                    <path d="M 3.96,0.36 A 6.48 4.32 0 0 1 3.96,9" fill="none"/>
+                                </g>
+                            </g>
                         </svg>
                         <span class="banner-figure-name">{s.name}</span>
                     </div>
                 ))}
             </div>
         </div>
-    </a>
-    <a class="banner-title" href={href} target="_blank" rel="noopener">
-        Support Margenrot Antuni<br/>on WeMakeit!
-    </a>
+        <div class="banner-stats">
+            <span>{totalCount ?? supporters.length} Supporters</span>
+            <span>2000 EUR Collected</span>
+        </div>
+    </div>
+    <div class="banner-title">
+        Crowdfunding on<br/>WeMakeit is accomplished!
+    </div>
 </div>
