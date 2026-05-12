@@ -1,5 +1,6 @@
 import {defineType, defineField, defineArrayMember} from 'sanity'
 import {BatchInput} from '../components/BatchInput'
+import {AlignLeft, AlignCenter, AlignRight} from '../components/AlignBlock'
 
 export const project = defineType({
   name: 'project',
@@ -54,9 +55,9 @@ export const project = defineType({
                   type: 'block',
                   styles: [
                     {title: 'Normal', value: 'normal'},
-                    {title: 'Left', value: 'left'},
-                    {title: 'Center', value: 'center'},
-                    {title: 'Right', value: 'right'},
+                    {title: 'Left', value: 'left', component: AlignLeft},
+                    {title: 'Center', value: 'center', component: AlignCenter},
+                    {title: 'Right', value: 'right', component: AlignRight},
                   ],
                   lists: [],
                   marks: {
