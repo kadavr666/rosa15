@@ -127,7 +127,6 @@ const title = project?.title || 'Project';
 
     <Footer />
 
-    <button class="mobile-support-bar" id="mobileSupportBar">SUPPORT THE PROJECT <span class="mobile-support-arrow">↓</span></button>
 </Base>
 
 <script>
@@ -218,24 +217,5 @@ const title = project?.title || 'Project';
     });
 })();
 
-(function () {
-    const bar = document.getElementById('mobileSupportBar');
-    if (!bar) return;
-
-    const lastSection = document.querySelector('#sections > .section-wrap:last-child');
-
-    bar.addEventListener('click', () => {
-        if (lastSection) lastSection.scrollIntoView({ behavior: 'smooth' });
-    });
-
-    if (lastSection) {
-        function update() {
-            const reached = (lastSection as Element).getBoundingClientRect().top < window.innerHeight;
-            bar.style.transform = reached ? 'translateY(100%)' : 'translateY(0)';
-        }
-        window.addEventListener('scroll', update, { passive: true });
-        update();
-    }
-})();
 
 </script>

@@ -719,39 +719,3 @@ a.banner-title {
 
 }
 
-/* ── Mobile support bar ── */
-
-.mobile-support-bar {
-    display: none;
-}
-
-@media (max-width: 768px) {
-    .mobile-support-bar {
-        display: block;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        padding: 16px 20px;
-        background: #fff;
-        color: #000;
-        border: none;
-        border-top: 1px solid #000;
-        font-family: inherit;
-        font-size: 20px;
-        letter-spacing: 0.05em;
-        line-height: 1;
-        cursor: pointer;
-        z-index: 200;
-        text-align: center;
-        transition: transform 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .mobile-support-arrow {
-        position: absolute;
-        right: 20px;
-    }
-}
