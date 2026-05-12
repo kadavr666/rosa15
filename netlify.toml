@@ -1,9 +1,9 @@
 [build]
   base = "site"
-  command = "npm run build"
+  command = "npm run build && cd ../studio && npm install && npx sanity build dist --yes && cp -r dist/static ../site/dist/ && cp -r dist/vendor ../site/dist/ && mkdir -p ../site/dist/studio && cp dist/index.html ../site/dist/studio/"
   publish = "dist"
 
 [[redirects]]
-  from = "/studio"
-  to = "https://rosa15.sanity.studio"
-  status = 301
+  from = "/studio/*"
+  to = "/studio/index.html"
+  status = 200
