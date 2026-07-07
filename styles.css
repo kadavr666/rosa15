@@ -179,11 +179,9 @@ main {
 /* ── Footer ── */
 
 #footer {
-    border-top: 1px solid #000;
     padding: 20px 20px 200px;
     text-align: left;
     line-height: 1.2;
-    min-height: 30vh;
     display: flex;
     flex-direction: column;
 }

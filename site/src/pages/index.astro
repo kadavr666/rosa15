@@ -1,13 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import Footer from '../components/Footer.astro';
-import Banner from '../components/Banner.astro';
 import { client, sanityImageUrl } from '../lib/sanity';
 
 const projects = await client.fetch('*[_type == "project"]{ title, subtitle, slug, heroImage, heroImageHover } | order(_createdAt desc)');
-const allSupporters = await client.fetch('array::unique(*[_type == "project"].supporters[].name + *[_type == "supporters"][0].items[].name)');
-const supporters = (allSupporters || []).map((name: string) => ({ name }));
-const supporterCount = await client.fetch('count(*[_type == "project"].supporters[].name) + count(*[_type == "supporters"][0].items[].name)');
 ---
 <Base title="Rosa 15">
     <div class={`projects-grid${projects?.length === 1 ? ' single-project' : ''}`}>
@@ -28,11 +24,6 @@ const supporterCount = await client.fetch('count(*[_type == "project"].supporter
                 </a>
             );
         })}
-        {supporters.length > 0 && (
-            <div class="project-card banner-card">
-                <Banner supporters={supporters} totalCount={supporterCount} />
-            </div>
-        )}
     </div>
     <Footer />
 </Base>
@@ -100,15 +91,6 @@ const supporterCount = await client.fetch('count(*[_type == "project"].supporter
         text-decoration: none;
         color: inherit;
     }
-    /* Banner card */
-    .banner-card {
-        perspective: none;
-    }
-    .banner-card :global(.banner-inner) {
-        width: 60vh;
-        height: 60vh;
-    }
-
     @media (max-width: 1420px) {
         :global(main) {
             display: block !important;
@@ -127,12 +109,6 @@ const supporterCount = await client.fetch('count(*[_type == "project"].supporter
         .project-card { width: 85vw; height: auto; }
         .project-card-title { padding: 20px 0 0; }
         .card-flip { height: 50vh; }
-        .banner-card :global(.banner-inner) { width: 85vw; height: 50vh; }
-        .banner-card :global(.banner-title) { padding: 20px 0 0; }
-    }
-
-    @media (max-width: 768px) {
-        .banner-card :global(.banner-inner) { height: 42vh; }
     }
 </style>
 
